@@ -35,11 +35,10 @@ class MoneyAgent(mesa.Agent):
         self.thief = 0
         self.target = 0
         self.state = "walking to goal"
-        self.visual_buffer = []
+        self.visual_buffer = {0:[]}
         self.position_memory = []
         self.DNA_dropped = []
         self.value = random.randint(0, 10)
-
         print(f"DNA of agent {self.color} is {self.code}")
 
 
@@ -161,6 +160,8 @@ class MoneyAgent(mesa.Agent):
 
     def vision(self):
         x = self.model.grid.get_neighbors(self.pos, True, radius=10)
+        self.visual_buffer[self.model.schedule.time] = []
+        flag = 0
         for n in x:
             if type(n) is not MoneyAgent:
                 continue
@@ -206,13 +207,21 @@ class MoneyAgent(mesa.Agent):
                         break
 
             if vision == 1:
-                #print(self.color, self.heading, "sees ", n.color)
-                self.visual_buffer.append(n)
+                '''if n.color == "red":
+                    print(self.color, self.heading, "sees ", n.color, " at ", self.model.schedule.time)
+                    flag = 1'''
+                self.visual_buffer[self.model.schedule.time].append(n)
+
+            '''if flag == 1:
+                for agent in self.visual_buffer[self.model.schedule.time]:
+                    if type(agent) == MoneyAgent:
+                        print(f"At time {self.model.schedule.time}, agent {self.color} saw {agent.color} at loc {agent.pos}")'''
+
 
     def targeting(self):
 
         if self.target == 0:
-            for n in self.visual_buffer:
+            for n in self.visual_buffer[self.model.schedule.time]:
                 if n.value > 1:
                     # agent is now target
                     self.target = n
@@ -242,25 +251,42 @@ class MoneyAgent(mesa.Agent):
     def stealing(self):
         print("stealing")
         if self.target != 0:
-            print(self.target.visual_buffer)
-            if self in self.target.visual_buffer:
-                print('seen by victim')
+            if self.model.schedule.time in self.target.visual_buffer.keys():
+                if self in self.target.visual_buffer[self.model.schedule.time]:
+                    print(self.target.visual_buffer[self.model.schedule.time])
+                    print('seen by victim')
             else:
                 print('not seen by victim')
 
             if random.random() > 0.5:
                 print("stealing successful")
+                self.target.value = -1
+                self.model.crime_model.set_victim_and_random(self.target)
             else:
                 print("stealing unsuccessful")
 
             self.target = 0
             self.goal = random.choice(self.model.goal_locations)
 
+    def monitor(self):
+        # once every ~ten steps agent checks if they've been stolen from
+        # then quit simulation
+        if random.random() < 0.1:
+            if self.value == -1:
+                print("realise stolen from")
+                self.model.crime_model.victim = self
+                self.model.crime_model.select_trace()
+                self.model.crime_model.select_eye_witness()
+                self.model.running = False
+
+
+
 
     def step(self):
         # The agent's step will go here.
         # For demonstration purposes we will print the agent's unique_id
-        self.visual_buffer = []
+        self.monitor()
+        self.visual_buffer[self.model.schedule.time] = []
         self.vision()
         if self.thief == True:
             self.check_location()
@@ -301,7 +327,7 @@ class MoneyModel(mesa.Model):
         self.schedule = mesa.time.RandomActivation(self)
         self.agent_list = []
 
-        colors = ["green", "blue", "gold"]
+        colors = ["green", "blue", "gold", "purple", "orange", "lime", "pink"]
         # Create agents
         for i in range(self.num_agents):
             a = MoneyAgent(self.ag_count, self, colors[i%len(colors)])
@@ -313,7 +339,7 @@ class MoneyModel(mesa.Model):
             a.halfway_point = a.halfway_point_calc()
             a.waypoints=[a.halfway_point, a.goal]
             a.thief = False
-            self.schedule.step()
+            #self.schedule.step()
             self.agent_list.append(a)
 
         self.agent_list[0].set_thief()
@@ -354,8 +380,11 @@ class MoneyModel(mesa.Model):
     def step(self):
         self.schedule.step()
         #self.collect_probabilities()
-        #if self.schedule.time > 35:
-        #    self.crime_model.select_trace()
+        #print("steps", self.schedule.steps)
+        if 400 < self.schedule.steps:
+            self.crime_model.select_trace()
+            self.crime_model.select_eye_witness()
+            self.running = False
 
 class Experiment():
     def __init__(self, run):
@@ -367,6 +396,7 @@ class Experiment():
 
         prior_random = []
         prior_thief = []
+        random_draw_from_thief = 0
 
         for i in range(0, run):
             model = MoneyModel(N=10, width=20, height=20)
@@ -381,22 +411,45 @@ class Experiment():
                 prob_random_trace_match_arbit+= 1
             if model.crime_model.sim_thief_ran == 1:
                 prob_random_trace_match_thief += 1
+            if model.crime_model.random_draw.owner.thief:
+                random_draw_from_thief += 1
+
             prior_random.append(model.crime_model.prior_random)
             prior_thief.append(model.crime_model.prior_thief)
 
 
         #print(prob_correct_match)
         #print(prob_math_innocent)
+
         PR_random = sum(prior_random)/len(prior_random)
         PR_thief = sum(prior_thief)/len(prior_thief)
         if prob_math_innocent == 0:
             prob_math_innocent = 0.000001
         if prob_random_trace_match_arbit == 0:
             prob_random_trace_match_arbit = 0.00001
+
+        print("====================================================================")
         print(f"LR_trace(thief) == {prob_correct_match/prob_math_innocent}")
+        print(f"posteriorODDS_trace(thief) == {run*(prob_correct_match/prob_math_innocent)}")
+        odds1 = (prob_correct_match/prob_math_innocent)
+        print(f"posteriorPROB_trace(thief) left by thief == {odds1 / (1 + odds1)}")
+        print(f"posteriorPROB_trace(thief) left by innocent == {1 - (odds1 / (1 + odds1))}")
+        print("====================================================================")
+        print(f"Random trace from thief in {random_draw_from_thief} out of {run} runs")
         print(f"LR_trace(random) == {prob_random_trace_match_thief/prob_random_trace_match_arbit}")
-        #print(PR_random, PR_thief)
         print(f"posteriorODDS_trace(random) == {(PR_thief/PR_random)*(prob_random_trace_match_thief/prob_random_trace_match_arbit)}")
+        odds = (PR_thief / PR_random) * (prob_random_trace_match_thief / prob_random_trace_match_arbit)
+        '''odds = p/(1-p)
+        odds*(1-p) = p
+        odds - p*odds = p
+        odds = p + p*odds
+        odds = p(1+odds)
+        p = odds/(1+odds)'''
+        print(f"posteriorPROB_trace(random) left by thief == {odds/(1+odds)}")
+        print(f"posteriorPROB_trace(random) left by innocent == {1 - (odds/(1+odds))}")
+        print("====================================================================")
+
+
 
 
 
@@ -411,6 +464,32 @@ class CrimeModel():
         while self.random == self.thief:
             self.random = random.choice(self.model.agent_list)
         print(self.random.color)
+        # victim
+        self.victim = 0
+
+    def set_victim_and_random(self, agent):
+        self.victim = agent
+        while self.random == self.thief or self.random == self.victim:
+            self.random = random.choice(self.model.agent_list)
+
+    def select_eye_witness(self):
+
+        # todo - define a victim
+        print("suspect (thief) color ", self.thief.color)
+
+        print("suspect (innocent) color ", self.random.color)
+
+        print("victim color ", self.victim.color)
+        for agent in self.model.agent_list:
+            print(agent.visual_buffer)
+            for key in agent.visual_buffer.keys():
+                val = agent.visual_buffer[key]
+                if self.thief in val or self.random in val:
+                    print(f"at time {key}, agent {agent.color} saw:")
+                    for item in val:
+                        if type(item) == MoneyAgent:
+                            print(f"\t {item.color} at location {item.pos}")
+
 
     def select_trace(self):
         collect_DNA_random = []
