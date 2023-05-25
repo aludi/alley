@@ -126,6 +126,11 @@ class Experiment():
         personal_loc_base= []
         personal_away_base= []
 
+        thief_present_crime_scene = []
+        thief_away_crime_scene = []
+        other_present_crime_scene = []
+        other_away_crime_scene = []
+
         num_agents = 10
 
         for i in range(0, run):
@@ -161,12 +166,65 @@ class Experiment():
             alibi_in.append(model.crime_model.alibi_inn)
             alibi_base_rate.append(model.crime_model.base_rate_alibi)
 
-            personal_loc_guilt.append(model.crime_model.trueLoc_report_thief)
-            personal_away_guilt.append(model.crime_model.trueAway_report_thief)
-            personal_loc_random.append(model.crime_model.trueLoc_report_target)
-            personal_away_random.append(model.crime_model.trueAway_report_target)
-            personal_loc_base.append(model.crime_model.trueLoc_report_innocent)
-            personal_away_base.append(model.crime_model.trueAway_report_innocent)
+            p_crime_scene_thief = model.crime_model.thief_present_crime_scene / (
+                        model.crime_model.thief_present_crime_scene + model.crime_model.thief_away_crime_scene)
+            p_crime_scene_other = model.crime_model.other_present_crime_scene / (
+                        model.crime_model.other_present_crime_scene + model.crime_model.other_away_crime_scene)
+
+            p_away_thief = model.crime_model.thief_away_crime_scene / (
+                    model.crime_model.thief_present_crime_scene + model.crime_model.thief_away_crime_scene)
+            p_away_other = model.crime_model.other_away_crime_scene / (
+                    model.crime_model.other_present_crime_scene + model.crime_model.other_away_crime_scene)
+
+            # probabilities for how many times the agent is away or not
+            print(p_crime_scene_thief, p_crime_scene_other)
+            print(p_away_thief, p_away_other)
+            thief_present_crime_scene.append(p_crime_scene_thief)
+            thief_away_crime_scene.append(p_away_thief)
+            other_present_crime_scene.append(p_crime_scene_other)
+            other_away_crime_scene.append(p_away_other)
+
+            try:
+                personal_loc_guilt.append(model.crime_model.trueLoc_report_thief / p_crime_scene_thief)
+            except ZeroDivisionError:
+                personal_loc_guilt.append(0)
+
+            try:
+                personal_away_guilt.append(model.crime_model.trueAway_report_thief/p_away_thief)
+            except ZeroDivisionError:
+                personal_away_guilt.append(0)
+
+            try:
+                personal_loc_base.append(model.crime_model.trueLoc_report_innocent / p_crime_scene_other)
+                personal_loc_random.append(model.crime_model.trueLoc_report_target/p_crime_scene_other)
+            except ZeroDivisionError:
+                personal_loc_base.append(0)
+                personal_loc_random.append(0)
+            try:
+                personal_away_random.append(model.crime_model.trueAway_report_target/p_away_other)
+                personal_away_base.append(model.crime_model.trueAway_report_innocent/p_away_other)
+            except ZeroDivisionError:
+                personal_away_random.append(0)
+                personal_away_base.append(0)
+
+            #print(model.crime_model.thief_present_crime_scene)
+            #print(model.crime_model.thief_away_crime_scene)
+
+
+
+            ''''p_stat_given_cs_thief = model.crime_model.trueLoc_report_thief/p_crime_scene_thief
+            p_stat_given_cs_other = model.crime_model.trueLoc_report_innocent/p_crime_scene_other
+
+            p_stat_given_away_thief = model.crime_model.trueAway_report_thief / p_away_thief
+            p_stat_given_away_other = model.crime_model.trueAway_report_innocentr / p_away_other
+
+            print(p_stat_given_cs_thief, p_stat_given_cs_other)
+            print(p_stat_given_away_thief, p_stat_given_away_other)'''
+
+            #thief_present_crime_scene.append(thief_present_crime_scene)
+            #self.thief_away_crime_scene = 0
+            #self.other_present_crime_scene = 0
+            #self.other_away_crime_scene = 0
 
 
             prior_random.append(model.crime_model.prior_random)
@@ -200,16 +258,16 @@ class Experiment():
         print("====================================================================")
 
         print("======================    WITNESSES     ============================")
-        print(witness_guilt)
-        print(witness_in)
-        print(witness_base_rate)
+        #print(witness_guilt)
+        #print(witness_in)
+        #print(witness_base_rate)
         av_guilt = sum(witness_guilt)/len(witness_guilt)
         av_in = sum(witness_in)/len(witness_in)
         av_base = sum(witness_base_rate)/len(witness_base_rate)
 
-        print(f"average number of witness guilt {av_guilt}")
-        print(f"average number of witness inn {av_in}")
-        print(f"average number of witness base rate {av_base}")
+        #print(f"average number of witness guilt {av_guilt}")
+        #print(f"average number of witness inn {av_in}")
+        #print(f"average number of witness base rate {av_base}")
         print("====================================================================")
 
         print(f"LR_witness(thief) == {av_guilt/av_base}")
@@ -227,19 +285,19 @@ class Experiment():
         print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
 
         print("======================      ALIBI       ============================")
-        print(alibi_guilt)
-        print(alibi_in)
-        print(alibi_base_rate)
+        #print(alibi_guilt)
+        #print(alibi_in)
+        #print(alibi_base_rate)
         av_guilt = sum(alibi_guilt) / len(alibi_guilt)
         av_in = sum(alibi_in) / len(alibi_in)
         av_base = sum(alibi_base_rate) / len(alibi_base_rate)
-        print(av_guilt)
-        print(av_in)
-        print(av_base)
+        #print(av_guilt)
+        #print(av_in)
+        #print(av_base)
 
-        print(f"average number of witness guilt {av_guilt}")
-        print(f"average number of witness inn {av_in}")
-        print(f"average number of witness base rate {av_base}")
+        #print(f"average number of witness guilt {av_guilt}")
+        #print(f"average number of witness inn {av_in}")
+        #print(f"average number of witness base rate {av_base}")
         print("====================================================================")
 
         print(f"LR_witness(thief) == {av_guilt / av_base}")
@@ -256,13 +314,40 @@ class Experiment():
         print(f"posteriorPROB_witness(innocent) left by thief == {odds3 / (1 + odds3)}")
         print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
 
+        print("======================     PERSONAL     ============================")
+
+        av_loc_guilt = sum(personal_loc_guilt)/len(personal_loc_guilt)
+        av_away_guilt = sum(personal_away_guilt)/len(personal_away_guilt)
+
+        av_loc_random = sum(personal_loc_random)/len(personal_loc_random)
+        av_away_random = sum(personal_away_random)/len(personal_away_random)
+
+        av_loc_base = sum(personal_loc_base)/len(personal_loc_base)
+        av_away_base = sum(personal_away_base)/len(personal_away_base)
+
+        Prior_thief_cs = sum(thief_present_crime_scene)/len(thief_present_crime_scene)
+        Prior_thief_away = sum(thief_away_crime_scene)/len(thief_away_crime_scene)
+        Prior_other_cs = sum(other_present_crime_scene)/len(other_present_crime_scene)
+        Prior_other_away = sum(other_away_crime_scene)/len(other_away_crime_scene)
+        print(Prior_thief_cs, Prior_thief_away)
+        print(Prior_other_cs, Prior_other_away)
+
+        print(f"LR_personal(thief) == {av_loc_guilt / av_away_guilt}")
+        print(f"posteriorOdds_personal(thief) == {(Prior_thief_cs / (Prior_thief_away)) * (av_loc_guilt / av_away_guilt)}")
+        odds2 = (Prior_thief_cs / (Prior_thief_away)) * (av_loc_guilt / av_away_guilt)
+        print(f"posteriorPROB_personal(thief) at cs == {odds2 / (1 + odds2)}")
+        print(f"posteriorPROB_personal(thief) at niet cs == {1 - (odds2 / (1 + odds2))}")
+
         print("====================================================================")
-        print(personal_loc_guilt,
-        personal_away_guilt,
-        personal_loc_random,
-        personal_away_random,
-        personal_loc_base,
-        personal_away_base)
+
+        print(f"LR_personal(innocent) == {av_loc_random / av_away_random}")
+        print(f"posteriorOdds_personal(innocent) == {(Prior_other_cs / (Prior_other_away)) * (av_loc_random / av_away_random)}")
+        odds2 = (Prior_other_cs / (Prior_other_away)) * (av_loc_random /av_away_random)
+        print(f"posteriorPROB_personal(innocent) at cs == {odds2 / (1 + odds2)}")
+        print(f"posteriorPROB_personal(innocent) at niet cs == {1 - (odds2 / (1 + odds2))}")
+
+        print("====================================================================")
+        print("====================================================================")
 
 
 
@@ -300,28 +385,37 @@ class CrimeModel():
         self.trueLoc_report_target = 0
         self.trueAway_report_target = 0
 
+        self.thief_present_crime_scene = 0
+        self.thief_away_crime_scene = 0
+        self.other_present_crime_scene = 0
+        self.other_away_crime_scene = 0
         for agent in self.model.agent_list:
             # ask agents: "where were you at the time of the murder
             # agents might lie
-            agent_position_steal = agent.position_memory[self.model.stealing_time]
+            agent_position_steal = agent.position_memory[self.model.steal_time]
             p = random.random()
 
             if steal_location == agent_position_steal: # agent was at steal location
                 if agent.thief == True:
-                    if p <= 0.1:
+                    self.thief_present_crime_scene +=1
+
+                    if p <= 0.8:
                         self.trueLoc_report_thief += 1
                 else:
-                    if p <= 0.3:
+                    self.other_present_crime_scene += 1
+                    if p <= 0.8:
                         self.trueLoc_report_innocent += 1
                         if agent == self.random:
                             self.trueLoc_report_target += 1
 
             else:
                 if agent.thief == True:
-                    if p <= 1:
+                    self.thief_away_crime_scene += 1
+                    if p <= 0.99:
                         self.trueAway_report_thief += 1
                 else:
-                    if p <= 0.99:
+                    self.other_away_crime_scene += 1
+                    if p <= 1:
                         self.trueAway_report_innocent += 1
                         if agent == self.random:
                             self.trueAway_report_target += 1

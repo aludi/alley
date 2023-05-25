@@ -20,7 +20,7 @@ def agent_portrayal(agent):
     return portrayal
 
 
-Experiment(run=100)
+Experiment(run=25)
 '''grid = mesa.visualization.CanvasGrid(agent_portrayal, 20, 20, 500, 500)
 server = mesa.visualization.ModularServer(MoneyModel,
                        [grid],
