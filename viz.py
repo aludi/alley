@@ -1,4 +1,5 @@
-from alley import mesa, MoneyModel, MoneyAgent, DNA, Experiment
+from alley import mesa, MoneyModel, Experiment
+from agents import  MoneyAgent, DNA
 import random
 
 def agent_portrayal(agent):
@@ -19,7 +20,7 @@ def agent_portrayal(agent):
     return portrayal
 
 
-Experiment(run=10)
+Experiment(run=100)
 '''grid = mesa.visualization.CanvasGrid(agent_portrayal, 20, 20, 500, 500)
 server = mesa.visualization.ModularServer(MoneyModel,
                        [grid],

@@ -3,308 +3,7 @@ import random
 import numpy as np
 import math
 import copy
-
-
-class DNA(mesa.Agent):
-    def __init__(self, unique_id, model, owner):
-        # Pass the parameters to the parent class.
-        super().__init__(unique_id, model)
-        self.model.ag_count += 1
-        self.owner = owner
-        self.time_dropped = self.model.schedule.time
-        self.code = owner.code
-
-    def step(self):
-        pass
-
-class MoneyAgent(mesa.Agent):
-    """An agent with fixed initial wealth."""
-
-    def __init__(self, unique_id, model, color):
-        # Pass the parameters to the parent class.
-        super().__init__(unique_id, model)
-        self.model.ag_count += 1
-        # Create the agent's attribute and set the initial values.
-        self.wealth = 1
-        self.heading = random.choice(["n", "e", "s", "w", "ne", "nw", "se", "sw"])
-        self.color = color
-        self.possible_DNA = ["A", "C"]
-        self.code = random.choices(self.possible_DNA, k=4)
-        self.goal = random.choice(self.model.goal_locations)
-        self.goal_counter = 0
-        self.thief = 0
-        self.target = 0
-        self.state = "walking to goal"
-        self.visual_buffer = {0:[]}
-        self.position_memory = []
-        self.DNA_dropped = []
-        self.value = random.randint(0, 10)
-        print(f"DNA of agent {self.color} is {self.code}")
-
-
-    def set_thief(self):
-        self.thief = True
-        self.color = "red"
-        self.goal = self.model.thief_location
-
-
-    def get_distance(self, pos_1, pos_2):
-        """Get the distance between two points
-        Args:
-            pos_1, pos_2: Coordinate tuples for both points.
-        """
-        x1, y1 = pos_1
-        x2, y2 = pos_2
-        dx = x1 - x2
-        dy = y1 - y2
-        return math.sqrt(dx ** 2 + dy ** 2)
-
-    def calculate_preferred_goal(self):
-        new = copy.deepcopy(self.model.goal_locations)
-        new.remove(self.pos)
-        print("new", new)
-
-
-        if random.random() <= 0.750: # agemts prefer a goal on the same side of the barrier
-            for goal in new:
-                if self.pos[1] == goal[1]:
-                    print(goal)
-                    self.goal = goal
-        else:
-            print("new", new)
-            random.shuffle(new)
-            for goal in new:
-                if self.pos[1] != goal[1]:
-                    print(goal)
-                    self.goal = goal
-
-
-    def move(self, r):
-        current_goal = self.goal
-        if self.pos == self.goal:
-            "reached goal"
-            if self.thief != True:
-                self.goal_counter += 1
-                self.calculate_preferred_goal() #random.choice(self.model.goal_locations)
-
-        possible_steps = self.model.grid.get_neighborhood(
-            self.pos, moore=True, include_center=True, radius=r
-        )
-        min_dist = min(self.get_distance(current_goal, pos) for pos in possible_steps)
-        final_candidates = [
-            pos for pos in possible_steps if self.get_distance(current_goal, pos) == min_dist
-        ]
-        new_position = self.random.choice(final_candidates)
-        #print("best", self.pos, new_position, new_position in self.model.accessible_grid_coordinates)
-        #print("dif", self.pos[0] - new_position[0], self.pos[1] - new_position[1])
-
-
-        if new_position not in self.model.accessible_grid_coordinates:
-            v0 = new_position[0] - self.pos[0]
-            v1 = new_position[1] - self.pos[1]
-            #print(self.color, v0, v1)
-            new_positions = [(self.pos[0]+v0, self.pos[1]), (self.pos[0], self.pos[1]+v1),
-                             (self.pos[0]+v1, self.pos[1]), (self.pos[0], self.pos[1]+v0),
-                             (self.pos[0]-v1, self.pos[1]), (self.pos[0], self.pos[1]-v0)]
-            for p in new_positions:
-                new_position = p
-                if new_position in self.model.accessible_grid_coordinates and \
-                        new_position not in self.position_memory[-3:]:
-                    #print("new position", new_position, self.pos)
-                    break
-
-        self.update_heading(self.pos, new_position)
-        self.model.grid.move_agent(self, new_position)
-        self.position_memory.append(self.pos)
-
-
-    def halfway_point_calc(self):
-        if self.goal != 0:
-            p = self.pos
-            g = self.goal
-            d0 = int((abs(p[0] - g[0])/2))
-            d1 = int((abs(p[1] - g[1])/2))
-            if p[1] != g[1]:
-                return (int(self.model.grid.width/2), int(self.model.grid.height/2))
-            else:
-                return (d0, d1)
-
-
-    def update_heading(self, newP, oldP):
-        (ax, ay) = oldP
-        (bx, by) = newP
-        if ax > bx:
-            if ay == by:
-                self.heading == "e"
-            elif ay > by:
-                self.heading = "ne"
-            else:
-                self.heading = "se"
-        elif ax == bx:
-            if ay == by:
-                self.heading == "n"
-            elif ay > by:
-                self.heading = "n"
-            else:
-                self.heading = "s"
-        else: # "ax < bx"
-            if ay == by:
-                self.heading == "w"
-            elif ay > by:
-                self.heading = "nw"
-            else:
-                self.heading = "sw"
-
-
-
-
-    def vision(self):
-        x = self.model.grid.get_neighbors(self.pos, True, radius=10)
-        self.visual_buffer[self.model.schedule.time] = []
-        flag = 0
-        for n in x:
-            if type(n) is not MoneyAgent:
-                continue
-            if self.heading in ["n", "ne", "nw"]:
-                if n.pos[0] >= self.pos[0] and n.pos[1] >= self.pos[1]:
-                    vision = 1
-                else:
-                    vision = 0
-            elif self.heading == "e":
-                if (n.pos[0] >= self.pos[0] and n.pos[1] <= self.pos[1] + (self.pos[1]/2)) or (n.pos[0] >= self.pos[0] and n.pos[1] >= self.pos[1] - (self.pos[1] / 2)):
-                    vision = 1
-                else:
-                    vision = 0
-            elif self.heading in ["s", "sw", "se"]:
-                if n.pos[0] <= self.pos[0] and n.pos[1] <= self.pos[1]:
-                    vision = 1
-                else:
-                    vision = 0
-            elif self.heading == "w":
-                if (n.pos[0] <= self.pos[0] and n.pos[1] <= self.pos[1] + (self.pos[1]/2)) or (n.pos[0] <= self.pos[0] and n.pos[1] >= self.pos[1] - (self.pos[1] / 2)):
-                    vision = 1
-                else:
-                    vision = 0
-            else:
-                pass
-
-            if vision == 1:
-                (x0, y0) = self.pos
-                (x1, y1) = n.pos
-                dx = x0 - x1
-                dy = y0 - y1
-                D = 2 * dy - dx
-                y = y0
-                # print(x0, x1)
-                for x in range(x0, x1):
-                    # print(x, y)
-                    if (x, y) not in self.model.accessible_grid_coordinates:
-                        vision = 0
-                    if D > 0:
-                        y = y + 1
-                        D = D - 2 * dx
-                    if D == D + 2 * dy:
-                        break
-
-            if vision == 1:
-                '''if n.color == "red":
-                    print(self.color, self.heading, "sees ", n.color, " at ", self.model.schedule.time)
-                    flag = 1'''
-                self.visual_buffer[self.model.schedule.time].append((n, n.pos))
-                #print(self.visual_buffer)
-
-            '''if flag == 1:
-                for agent in self.visual_buffer[self.model.schedule.time]:
-                    if type(agent) == MoneyAgent:
-                        print(f"At time {self.model.schedule.time}, agent {self.color} saw {agent.color} at loc {agent.pos}")'''
-
-
-    def targeting(self):
-
-        if self.target == 0:
-            for (n, npos) in self.visual_buffer[self.model.schedule.time]:
-                if n.value > 1:
-                    # agent is now target
-                    self.target = n
-                    self.state = "setting target"
-                    print("setting target")
-        else:
-            print(self.target.color)
-            if self.target.pos == self.pos:
-                print("approached")
-                self.state = "stealing"
-                self.stealing()
-            else:
-                self.state = "approaching target"
-                self.goal = self.target.pos
-
-
-
-    def check_location(self):
-        loc = 0
-        if 5 < self.pos[0] < 10 and 3 < self.pos[1] < 16:
-            # agent is safe in alleyway
-            loc = 1
-        if loc == 0:
-            self.target = 0
-            self.goal = self.model.thief_location
-
-    def stealing(self):
-        print("stealing")
-        if self.target != 0:
-            if self.model.schedule.time in self.target.visual_buffer.keys():
-                if (self, self.pos) in self.target.visual_buffer[self.model.schedule.time]:
-                    print(self.target.visual_buffer[self.model.schedule.time])
-                    print('seen by victim')
-            else:
-                print('not seen by victim')
-
-            if random.random() > 0.5:
-                print("stealing successful at t =", self.model.schedule.time)
-                self.target.value = -1
-                self.model.crime_model.set_victim_and_random(self.target)
-            else:
-                print("stealing unsuccessful")
-
-            self.target = 0
-            self.goal = random.choice(self.model.goal_locations)
-
-    def monitor(self):
-        # once every ~ten steps agent checks if they've been stolen from
-        # then quit simulation
-        if random.random() < 0.1:
-            if self.value == -1:
-                print("realise stolen from")
-                self.model.crime_model.victim = self
-                self.model.crime_model.set_reported_time(self.model.schedule.steps)
-                self.model.running = False
-                self.model.reported = True
-                '''self.model.crime_model.select_trace()
-                self.model.crime_model.select_eye_witness()
-                self.model.running = False'''
-
-
-
-
-    def step(self):
-        # The agent's step will go here.
-        # For demonstration purposes we will print the agent's unique_id
-        self.monitor()
-        self.visual_buffer[self.model.schedule.time] = []
-        self.vision()
-        if self.thief == True:
-            self.check_location()
-            self.targeting()
-            if self.waypoints != []:
-                self.move(2)
-        else:
-            self.move(1)
-
-        if random.random() < 0.1: #1/10 probability for an agent to leave DNA at every step
-            dna = DNA(self.model.ag_count, self.model, self)
-            self.model.grid.place_agent(dna, (self.pos[0], self.pos[1]))
-            self.DNA_dropped.append(dna)
-
+from agents import MoneyAgent, DNA
 
 
 
@@ -316,6 +15,7 @@ class MoneyModel(mesa.Model):
         self.ag_count = 0
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(width, height, False)
+        self.steal_time = -1
 
         grid_list = []
         self.accessible_grid_coordinates = []
@@ -393,6 +93,12 @@ class MoneyModel(mesa.Model):
             self.running = False'''
 
 class Experiment():
+    '''odds = p/(1-p)
+    odds*(1-p) = p
+    odds - p*odds = p
+    odds = p + p*odds
+    odds = p(1+odds)
+    p = odds/(1+odds)'''
     def __init__(self, run):
         prob_correct_match = 0
         prob_math_innocent = 0
@@ -406,15 +112,24 @@ class Experiment():
 
         witness_guilt = []
         witness_in = []
+        witness_base_rate = []
+
+        alibi_guilt = []
+        alibi_in = []
+        alibi_base_rate = []
+
+        num_agents = 10
 
         for i in range(0, run):
-            model = MoneyModel(N=10, width=20, height=20)
+            model = MoneyModel(N=num_agents, width=20, height=20)
             for j in range(500):
                 model.step()
                 if model.reported == True:
                     break
             model.crime_model.select_trace()
             model.crime_model.select_eye_witness()
+            model.crime_model.calculate_alibi()
+
             if model.crime_model.sim_ran == 1:
                 prob_math_innocent+= 1
             if model.crime_model.sim_thief == 1:
@@ -426,11 +141,16 @@ class Experiment():
             if model.crime_model.random_draw.owner.thief:
                 random_draw_from_thief += 1
 
-            print(model.crime_model.total_witness_guilt)
-            print(model.crime_model.total_witness_inn)
+            #print(model.crime_model.total_witness_guilt)
+            #print(model.crime_model.total_witness_inn)
 
             witness_guilt.append(model.crime_model.total_witness_guilt)
             witness_in.append(model.crime_model.total_witness_inn)
+            witness_base_rate.append(model.crime_model.base_rate_surrounding)
+
+            alibi_guilt.append(model.crime_model.alibi_guilt)
+            alibi_in.append(model.crime_model.alibi_inn)
+            alibi_base_rate.append(model.crime_model.base_rate_alibi)
 
             prior_random.append(model.crime_model.prior_random)
             prior_thief.append(model.crime_model.prior_thief)
@@ -457,12 +177,7 @@ class Experiment():
         print(f"LR_trace(random) == {prob_random_trace_match_thief/prob_random_trace_match_arbit}")
         print(f"posteriorODDS_trace(random) == {(PR_thief/PR_random)*(prob_random_trace_match_thief/prob_random_trace_match_arbit)}")
         odds = (PR_thief / PR_random) * (prob_random_trace_match_thief / prob_random_trace_match_arbit)
-        '''odds = p/(1-p)
-        odds*(1-p) = p
-        odds - p*odds = p
-        odds = p + p*odds
-        odds = p(1+odds)
-        p = odds/(1+odds)'''
+
         print(f"posteriorPROB_trace(random) left by thief == {odds/(1+odds)}")
         print(f"posteriorPROB_trace(random) left by innocent == {1 - (odds/(1+odds))}")
         print("====================================================================")
@@ -470,14 +185,61 @@ class Experiment():
         print("======================    WITNESSES     ============================")
         print(witness_guilt)
         print(witness_in)
+        print(witness_base_rate)
         av_guilt = sum(witness_guilt)/len(witness_guilt)
         av_in = sum(witness_in)/len(witness_in)
+        av_base = sum(witness_base_rate)/len(witness_base_rate)
+
         print(f"average number of witness guilt {av_guilt}")
-        print(f"average number of witness in {av_in}")
+        print(f"average number of witness inn {av_in}")
+        print(f"average number of witness base rate {av_base}")
         print("====================================================================")
 
+        print(f"LR_witness(thief) == {av_guilt/av_base}")
+        print(f"posteriorOdds_witness(thief) == {(1/(num_agents-1))*(av_guilt/av_base)}")
+        odds2 = (1/(num_agents-1))*(av_guilt/av_base)
+        print(f"posteriorPROB_witness(thief) by thief == {odds2 / (1 + odds2)}")
+        print(f"posteriorPROB_witness(thief) by innocent == {1 - (odds2 / (1 + odds2))}")
 
+        print("====================================================================")
 
+        print(f"LR_witness(innocent) == {av_in/av_base}")
+        print(f"posteriorOdds_witness(innocent) == {(1/(num_agents-1))*(av_in/av_base)}")
+        odds3 = (1/(num_agents-1))*(av_in/av_base)
+        print(f"posteriorPROB_witness(innocent) left by thief == {odds3 / (1 + odds3)}")
+        print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
+
+        print("======================      ALIBI       ============================")
+        print(alibi_guilt)
+        print(alibi_in)
+        print(alibi_base_rate)
+        av_guilt = sum(alibi_guilt) / len(alibi_guilt)
+        av_in = sum(alibi_in) / len(alibi_in)
+        av_base = sum(alibi_base_rate) / len(alibi_base_rate)
+        print(av_guilt)
+        print(av_in)
+        print(av_base)
+
+        print(f"average number of witness guilt {av_guilt}")
+        print(f"average number of witness inn {av_in}")
+        print(f"average number of witness base rate {av_base}")
+        print("====================================================================")
+
+        print(f"LR_witness(thief) == {av_guilt / av_base}")
+        print(f"posteriorOdds_witness(thief) == {(1 / (num_agents - 1)) * (av_guilt / av_base)}")
+        odds2 = (1 / (num_agents - 1)) * (av_guilt / av_base)
+        print(f"posteriorPROB_witness(thief) by thief == {odds2 / (1 + odds2)}")
+        print(f"posteriorPROB_witness(thief) by innocent == {1 - (odds2 / (1 + odds2))}")
+
+        print("====================================================================")
+
+        print(f"LR_witness(innocent) == {av_in / av_base}")
+        print(f"posteriorOdds_witness(innocent) == {(1 / (num_agents - 1)) * (av_in / av_base)}")
+        odds3 = (1 / (num_agents - 1)) * (av_in / av_base)
+        print(f"posteriorPROB_witness(innocent) left by thief == {odds3 / (1 + odds3)}")
+        print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
+
+        print("====================================================================")
 
 
 
@@ -506,12 +268,18 @@ class CrimeModel():
     def set_reported_time(self, t):
         self.reported_time = t
 
+    def personal_testimony(self):
+        for agent in self.model.agent_list:
+            # ask agents: "where were you at the time
+
+
+
+
     def select_eye_witness(self):
 
         #print("suspect (thief) color ", self.thief.color)
 
         #print("suspect (innocent) color ", self.random.color)
-
 
         #print("victim color ", self.victim.color)
 
@@ -525,29 +293,27 @@ class CrimeModel():
                 pos_thief = (-3, -3)
                 pos_victim = (-1, -1)
                 pos_random = (-2, -2)
-                val = agent.visual_buffer[key]
-                if val != []:
-                    #print(val)
-                    #print(list(zip(*val)))
-                    #print(self.thief in list(zip(*val))[0])
-                    if (self.thief in list(zip(*val))[0] or self.random in list(zip(*val))[0]) and self.victim in list(zip(*val))[0]:
-                        #print(f"at time {key}, agent {agent.color} saw:")
-                        for item in val:
-                            if type(item[0]) == MoneyAgent:
-                                #print(f"\t {item[0].color} at location {item[1]}")
-                                if self.thief == item[0]:
-                                    pos_thief = item[1]
-                                if self.victim == item[0]:
-                                    pos_victim = item[1]
-                                if self.random == item[0]:
-                                    pos_random = item[1]
-                                if item[0] not in [self.random, self.thief, self.victim]:
-                                    if item[1] == pos_victim:
-                                        # base rate per agent
-                                        self.base_rate_surrounding += 1
-
-
-
+                if key in agent.visual_buffer.keys():
+                    val = agent.visual_buffer[key]
+                    if val != []:
+                        #print(val)
+                        #print(list(zip(*val)))
+                        #print(self.thief in list(zip(*val))[0])
+                        if (self.thief in list(zip(*val))[0] or self.random in list(zip(*val))[0]) and self.victim in list(zip(*val))[0]:
+                            #print(f"at time {key}, agent {agent.color} saw:")
+                            for item in val:
+                                if type(item[0]) == MoneyAgent:
+                                    #print(f"\t {item[0].color} at location {item[1]}")
+                                    if self.thief == item[0]:
+                                        pos_thief = item[1]
+                                    if self.victim == item[0]:
+                                        pos_victim = item[1]
+                                    if self.random == item[0]:
+                                        pos_random = item[1]
+                                    if item[0] not in [self.thief, self.victim]:
+                                        if item[1] == pos_victim:
+                                            # base rate per agent
+                                            self.base_rate_surrounding += 1
 
                 # can we find statistical trends in this?
                 # sometimes there is consensus
@@ -558,9 +324,78 @@ class CrimeModel():
                 if pos_random == pos_victim:
                     print("position of innocent == position of victim", key, "according to ", agent.color)
                     self.total_witness_inn += 1
+
+
+
         print("wg", self.total_witness_guilt)
         print("wi", self.total_witness_inn)
         print("br", self.base_rate_surrounding)
+
+        if self.total_witness_guilt > 0:
+            self.total_witness_guilt = 1
+        if self.total_witness_inn > 0:
+            self.total_witness_inn = 1
+        if self.base_rate_surrounding > 0:
+            self.base_rate_surrounding = 1
+
+    def calculate_alibi(self):
+        self.alibi_guilt = 0
+        self.alibi_inn = 0
+        self.base_rate_alibi = 0
+        for agent in self.model.agent_list:
+            for key in range(max(0, self.reported_time-10), self.reported_time):  # final recall
+                pos_thief = (-3, -3)
+                pos_victim = (-1, -1)
+                pos_random = (-2, -2)
+                if key in agent.visual_buffer.keys():
+                    val = agent.visual_buffer[key]
+                    if val != []:
+                        if (self.thief in list(zip(*val))[0] or self.random in list(zip(*val))[0]):
+                            print(f"at time {key}, agent {agent.color} saw:")
+                            for item in val:
+                                if type(item[0]) == MoneyAgent:
+                                    print(f"\t {item[0].color} at location {item[1]}")
+                                    if self.thief == item[0]:
+                                        pos_thief = item[1]
+                                    if self.victim == item[0]:
+                                        pos_victim = item[1]
+                                    if self.random == item[0]:
+                                        pos_random = item[1]
+                                    if item[0] not in [self.thief, self.victim]:
+                                        if self.get_distance(item[1], pos_victim) > 2:
+                                            # base rate per agent
+                                            self.base_rate_alibi+= 1
+
+                # can we find statistical trends in this?
+                # sometimes there is consensus
+                if pos_thief != (-3, -3) and pos_victim != (-1, -1) and pos_random != (-2, -2):
+                    if self.get_distance(pos_thief, pos_victim) > 2:
+                        print("position of thief FAR AWAY position of victim at ", key, "according to ", agent.color)
+                        self.alibi_guilt += 1
+
+                    if self.get_distance(pos_random, pos_victim)> 2:
+                        print("position of innocent FAR AWAY position of victim", key, "according to ", agent.color)
+                        self.alibi_inn += 1
+
+        print(self.alibi_guilt, self.alibi_inn, self.base_rate_alibi)
+        if self.alibi_guilt > 0:
+            self.alibi_guilt = 1
+        if self.alibi_inn > 0:
+            self.alibi_inn = 1
+        if self.base_rate_alibi > 0:
+            self.base_rate_alibi = 1
+
+
+    def get_distance(self, pos_1, pos_2):
+        """Get the distance between two points
+        Args:
+            pos_1, pos_2: Coordinate tuples for both points.
+        """
+        x1, y1 = pos_1
+        x2, y2 = pos_2
+        dx = x1 - x2
+        dy = y1 - y2
+        return math.sqrt(dx ** 2 + dy ** 2)
 
 
 
@@ -575,21 +410,41 @@ class CrimeModel():
                             collect_DNA_thief_subset.append(agent)
                         else:
                             collect_DNA_random.append(agent)
-        # todo: trace random and trace thief
-        self.trace_random = random.choice(collect_DNA_random)
-        self.trace_thief = random.choice(collect_DNA_thief_subset)
-        self.prior_random = len(collect_DNA_random)/(len(collect_DNA_thief_subset)+len(collect_DNA_random))
-        self.prior_thief = len(collect_DNA_thief_subset)/(len(collect_DNA_thief_subset)+len(collect_DNA_random))
-        self.collect = collect_DNA_thief_subset + collect_DNA_random
-        self.random_draw = random.choice(self.collect)
-        print()
-        print()
-        print(self.prior_random)
-        print(self.prior_thief)
-        print(self.random_draw.owner.color)
-        print()
-        print()
-        self.calculate_random_match()
+        if collect_DNA_random != []:
+            self.trace_random = random.choice(collect_DNA_random)
+        else:
+            self.trace_random = 0
+
+        if collect_DNA_thief_subset != []:
+            self.trace_thief = random.choice(collect_DNA_thief_subset)
+        else:
+            self.trace_thief = 0
+
+        if len(collect_DNA_thief_subset) + len(collect_DNA_random) == 0:
+            self.prior_random = 0
+            self.prior_thief = 0
+            self.collect = 0
+            self.random_draw = 0
+        else:
+            self.prior_random = len(collect_DNA_random)/(len(collect_DNA_thief_subset)+len(collect_DNA_random))
+            self.prior_thief = len(collect_DNA_thief_subset)/(len(collect_DNA_thief_subset)+len(collect_DNA_random))
+            self.collect = collect_DNA_thief_subset + collect_DNA_random
+            self.random_draw = random.choice(self.collect)
+            print()
+            print()
+            print(self.prior_random)
+            print(self.prior_thief)
+            print(self.random_draw.owner.color)
+            print()
+            print()
+        if self.trace_random != 0 and self.trace_thief != 0:
+            #print(self.random, self.thief)
+            self.calculate_random_match()
+        else:
+            self.sim_ran = 0
+            self.sim_thief = 0
+            self.sim_ran_ran = 0
+            self.sim_thief_ran = 0
         print()
         print()
 
@@ -600,14 +455,14 @@ class CrimeModel():
         for i in range(0, len(code1)):
             if code1[i] != code2[i]:
                 sim_score += 1
-        print(code1, code2, sim_score)
+        #print(code1, code2, sim_score)
         return sim_score
 
 
     def calculate_random_match(self):
         # for thief
         print(self.random.color)
-        print("min is 0, max is 4")
+        #print("min is 0, max is 4")
         self.sim_ran = 0
         self.sim_thief = 0
         self.sim_ran_ran = 0
