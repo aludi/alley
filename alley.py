@@ -133,6 +133,8 @@ class Experiment():
 
         num_agents = 10
 
+
+
         for i in range(0, run):
             model = MoneyModel(N=num_agents, width=20, height=20)
             for j in range(500):
@@ -241,6 +243,9 @@ class Experiment():
         if prob_random_trace_match_arbit == 0:
             prob_random_trace_match_arbit = 0.00001
 
+        self.thief_LR = ["thief"]
+        self.other_LR = ["arbit"]
+
         print("======================    DNA TRACE    ============================")
         print(f"LR_trace(thief) == {prob_correct_match/prob_math_innocent}")
         print(f"posteriorODDS_trace(thief) == {run*(prob_correct_match/prob_math_innocent)}")
@@ -256,6 +261,9 @@ class Experiment():
         print(f"posteriorPROB_trace(random) left by thief == {odds/(1+odds)}")
         print(f"posteriorPROB_trace(random) left by innocent == {1 - (odds/(1+odds))}")
         print("====================================================================")
+
+        self.thief_LR.append(prob_correct_match/prob_math_innocent)
+        self.other_LR.append(prob_random_trace_match_thief/prob_random_trace_match_arbit)
 
         print("======================    WITNESSES     ============================")
         #print(witness_guilt)
@@ -283,6 +291,10 @@ class Experiment():
         odds3 = (1/(num_agents-1))*(av_in/av_base)
         print(f"posteriorPROB_witness(innocent) left by thief == {odds3 / (1 + odds3)}")
         print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
+
+        self.thief_LR.append(av_guilt/av_base)
+        self.other_LR.append(av_in/av_base)
+
 
         print("======================      ALIBI       ============================")
         #print(alibi_guilt)
@@ -313,6 +325,12 @@ class Experiment():
         odds3 = (1 / (num_agents - 1)) * (av_in / av_base)
         print(f"posteriorPROB_witness(innocent) left by thief == {odds3 / (1 + odds3)}")
         print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
+
+
+        self.thief_LR.append(av_guilt/av_base)
+        self.other_LR.append(av_in/av_base)
+
+
 
         print("======================     PERSONAL     ============================")
 
@@ -346,8 +364,15 @@ class Experiment():
         print(f"posteriorPROB_personal(innocent) at cs == {odds2 / (1 + odds2)}")
         print(f"posteriorPROB_personal(innocent) at niet cs == {1 - (odds2 / (1 + odds2))}")
 
+
+        self.thief_LR.append(av_guilt/av_base)
+        self.other_LR.append(av_in/av_base)
+
         print("====================================================================")
         print("====================================================================")
+
+
+
 
 
 
@@ -399,7 +424,7 @@ class CrimeModel():
                 if agent.thief == True:
                     self.thief_present_crime_scene +=1
 
-                    if p <= 0.8:
+                    if p <= 0.2:
                         self.trueLoc_report_thief += 1
                 else:
                     self.other_present_crime_scene += 1
