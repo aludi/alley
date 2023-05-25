@@ -264,6 +264,7 @@ class MoneyAgent(mesa.Agent):
                 print("stealing successful at t =", self.model.schedule.time)
                 self.target.value = -1
                 self.model.steal_time = self.model.schedule.time
+                self.model.steal_location = self.pos
                 self.model.crime_model.set_victim_and_random(self.target)
             else:
                 print("stealing unsuccessful")

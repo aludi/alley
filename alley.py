@@ -16,6 +16,7 @@ class MoneyModel(mesa.Model):
         self.num_agents = N
         self.grid = mesa.space.MultiGrid(width, height, False)
         self.steal_time = -1
+        self.steal_location = 0
 
         grid_list = []
         self.accessible_grid_coordinates = []
@@ -118,6 +119,13 @@ class Experiment():
         alibi_in = []
         alibi_base_rate = []
 
+        personal_loc_guilt = []
+        personal_away_guilt= []
+        personal_loc_random= []
+        personal_away_random= []
+        personal_loc_base= []
+        personal_away_base= []
+
         num_agents = 10
 
         for i in range(0, run):
@@ -152,6 +160,14 @@ class Experiment():
             alibi_in.append(model.crime_model.alibi_inn)
             alibi_base_rate.append(model.crime_model.base_rate_alibi)
 
+            personal_loc_guilt.append(model.crime_model.trueLoc_report_thief)
+            personal_away_guilt.append(model.crime_model.trueAway_report_thief)
+            personal_loc_random.append(model.crime_model.trueLoc_report_target)
+            personal_away_random.append(model.crime_model.trueAway_report_target)
+            personal_loc_base.append(model.crime_model.trueLoc_report_innocent)
+            personal_away_base.append(model.crime_model.trueAway_report_innocent)
+
+ß
             prior_random.append(model.crime_model.prior_random)
             prior_thief.append(model.crime_model.prior_thief)
 
@@ -240,6 +256,12 @@ class Experiment():
         print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
 
         print("====================================================================")
+        print(personal_loc_guilt,
+        personal_away_guilt,
+        personal_loc_random,
+        personal_away_random,
+        personal_loc_base,
+        personal_away_base)
 
 
 
@@ -269,11 +291,39 @@ class CrimeModel():
         self.reported_time = t
 
     def personal_testimony(self):
+        steal_location = self.model.steal_location
+        self.trueLoc_report_thief = 0
+        self.trueLoc_report_innocent = 0
+        self.trueAway_report_thief = 0
+        self.trueAway_report_innocent = 0
+        self.trueLoc_report_target = 0
+        self.trueAway_report_target = 0
+
         for agent in self.model.agent_list:
-            # ask agents: "where were you at the time
+            # ask agents: "where were you at the time of the murder
+            # agents might lie
+            agent_position_steal = agent.position_memory[self.model.stealing_time]
+            p = random.random()
 
+            if steal_location == agent_position_steal: # agent was at steal location
+                if agent.thief == True:
+                    if p <= 0.1:
+                        self.trueLoc_report_thief += 1
+                else:
+                    if p <= 0.3:
+                        self.trueLoc_report_innocent += 1
+                        if agent == self.random:
+                            self.trueLoc_report_target += 1
 
-
+            else:
+                if agent.thief == True:
+                    if p <= 1:
+                        self.trueAway_report_thief += 1
+                else:
+                    if p <= 0.99:
+                        self.trueAway_report_innocent += 1
+                        if agent == self.random:
+                            self.trueAway_report_target += 1
 
     def select_eye_witness(self):
 
