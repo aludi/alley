@@ -137,6 +137,7 @@ class Experiment():
             model.crime_model.select_trace()
             model.crime_model.select_eye_witness()
             model.crime_model.calculate_alibi()
+            model.crime_model.personal_testimony()
 
             if model.crime_model.sim_ran == 1:
                 prob_math_innocent+= 1
@@ -167,7 +168,7 @@ class Experiment():
             personal_loc_base.append(model.crime_model.trueLoc_report_innocent)
             personal_away_base.append(model.crime_model.trueAway_report_innocent)
 
-ß
+
             prior_random.append(model.crime_model.prior_random)
             prior_thief.append(model.crime_model.prior_thief)
 
