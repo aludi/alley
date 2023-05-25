@@ -517,6 +517,8 @@ class CrimeModel():
 
         self.total_witness_inn = 0
         self.total_witness_guilt = 0
+        self.base_rate_surrounding = 0
+
         for agent in self.model.agent_list:
             #print(agent.visual_buffer)
             for key in range(max(0, self.reported_time-10), self.reported_time):  # final recall
@@ -539,6 +541,13 @@ class CrimeModel():
                                     pos_victim = item[1]
                                 if self.random == item[0]:
                                     pos_random = item[1]
+                                if item[0] not in [self.random, self.thief, self.victim]:
+                                    if item[1] == pos_victim:
+                                        # base rate per agent
+                                        self.base_rate_surrounding += 1
+
+
+
 
                 # can we find statistical trends in this?
                 # sometimes there is consensus
@@ -551,6 +560,7 @@ class CrimeModel():
                     self.total_witness_inn += 1
         print("wg", self.total_witness_guilt)
         print("wi", self.total_witness_inn)
+        print("br", self.base_rate_surrounding)
 
 
 
