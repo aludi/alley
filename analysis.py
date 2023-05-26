@@ -1,5 +1,8 @@
 import pandas as pd
 from alley import Experiment
+import sys
+import subprocess
+import os
 
 
 
@@ -146,8 +149,9 @@ such that we get frequency distributions related to the stae space?
 
 l = []
 for i in range(0, 1):
-    perform_experiment()
-    merge_attempt()
+    #perform_experiment()
+    #merge_attempt()
+
     #d, s, w, a = calculate_LRs("thief")
     #do, so, wo, ao = calculate_all_odds("thief")
     #do, so, wo, ao = calculate_all_change("thief")
@@ -170,6 +174,8 @@ for lis in l:
     print()
     #print(f"LR DNA {d}, LR stat {s} LR witness {w}, LR alibi {a}")
     #print(f"odds DNA {do}, odds stat {so} odds witness {wo}, odds alibi {ao}")
+
+os.system("Rscript generatingNetworkAlleys.R")
 
 #calculate_LRs("thief")
 #calculate_LRs("innocent")
