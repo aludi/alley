@@ -265,7 +265,6 @@ class CrimeModel():
         total_evidence = evidence_other + evidence_thief
         if total_evidence == []:
             return 0
-
         for trace in total_evidence:
             if trace.owner == agent:
                 return 1

@@ -38,6 +38,7 @@ class MoneyAgent(mesa.Agent):
         self.visual_buffer = {0:[]}
         self.position_memory = []
         self.DNA_dropped = []
+        self.DNA_drop_threshold = 0.01
         self.value = random.randint(0, 10)
 
         #print(f"DNA of agent {self.color} is {self.code}")
@@ -47,6 +48,7 @@ class MoneyAgent(mesa.Agent):
         self.thief = True
         self.color = "red"
         self.goal = self.model.thief_location
+        self.DNA_drop_threshold = 0.1
 
 
     def get_distance(self, pos_1, pos_2):
@@ -303,7 +305,7 @@ class MoneyAgent(mesa.Agent):
         else:
             self.move(1)
 
-        if random.random() < 0.1: #1/10 probability for an agent to leave DNA at every step
+        if random.random() < self.DNA_drop_threshold: #1/10 probability for an agent to leave DNA at every step
             dna = DNA(self.model.ag_count, self.model, self)
             self.model.grid.place_agent(dna, (self.pos[0], self.pos[1]))
             self.DNA_dropped.append(dna)

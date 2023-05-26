@@ -129,7 +129,6 @@ for i in range(0, 5):
     #d, s, w, a = calculate_LRs("thief")
     #do, so, wo, ao = calculate_all_odds("thief")
     do, so, wo, ao = calculate_all_change("thief")
-
     l.append((do, so, wo, ao))
 
 #calculate_prior(f'out/data/thief.csv', "suspect")
