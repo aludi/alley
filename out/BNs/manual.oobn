@@ -59,10 +59,15 @@ class manual
 	HR_LinkMode = "";
     }
 
-    node other_suspect
+    node suspect
     {
+	label = "";
 	position = (188 367);
 	states = ("0" "1");
+	HR_Group = "0";
+	HR_Desc = "";
+	HR_State_1 = "";
+	HR_State_0 = "";
     }
 
     node other_cs
@@ -80,10 +85,15 @@ class manual
 	states = ("0" "1");
     }
 
-    node suspect
+    node other_suspect
     {
+	label = "";
 	position = (543 344);
 	states = ("0" "1");
+	HR_Group = "0";
+	HR_Desc = "";
+	HR_State_1 = "";
+	HR_State_0 = "";
 	HR_LinkControlPoints = "";
 	HR_LinkGroup = "[DNAatCS:0][other_alib:0][other_cs:0]";
 	HR_LinkMode = "[DNAatCS:0][other_alib:0][other_cs:0]";
@@ -118,7 +128,7 @@ class manual
 	position = (446 288);
 	states = ("0" "1");
 	HR_LinkControlPoints = "";
-	HR_LinkGroup = "[statement:0][suspect:0]";
+	HR_LinkGroup = "[statement:0][other_suspect:0]";
 	HR_LinkMode = "[statement:0][suspect:0]";
     }
 
@@ -133,24 +143,24 @@ class manual
 	data = ( 0.909305 0.0906949 );
     }
 
-    potential (other_suspect)
+    potential (suspect)
     {
 	data = ( 1 0 );
     }
 
-    potential (other_cs | suspect)
+    potential (other_cs | other_suspect)
     {
-	data = (( 0.948101 0.0518987 )	%  suspect=0
-		( 0.948101 0.0518987 ));	%  suspect=1
+	data = (( 0.948101 0.0518987 )	%  other_suspect=0
+		( 0.948101 0.0518987 ));	%  other_suspect=1
     }
 
-    potential (other_alib | suspect)
+    potential (other_alib | other_suspect)
     {
-	data = (( 0.96256 0.0374396 )	%  suspect=0
-		( 0.96256 0.0374396 ));	%  suspect=1
+	data = (( 0.96256 0.0374396 )	%  other_suspect=0
+		( 0.96256 0.0374396 ));	%  other_suspect=1
     }
 
-    potential (suspect | locCS)
+    potential (other_suspect | locCS)
     {
 	data = (( 0.9 0.1 )	%  locCS=0
 		( 0.9 0.1 ));	%  locCS=1
@@ -166,10 +176,10 @@ class manual
 	data = ( 1 0 );
     }
 
-    potential (DNAatCS | suspect)
+    potential (DNAatCS | other_suspect)
     {
-	data = (( 0.788889 0.211111 )	%  suspect=0
-		( 0.788889 0.211111 ));	%  suspect=1
+	data = (( 0.788889 0.211111 )	%  other_suspect=0
+		( 0.788889 0.211111 ));	%  other_suspect=1
     }
 
     potential (locCS)

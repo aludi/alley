@@ -135,7 +135,12 @@ def calculate_all_change(agent_type):
 
 def calculate_all_change_merge(agent_type):
     df = pd.read_csv(f'out/data/merge.csv')
-    dna = change(df, "DNAatCS", "suspect")
+    l = [("DNAatCS", "other_suspect"), ("statement", "locCS"),
+         ("other_cs", "other_suspect"), ("other_alib", "other_suspect")]
+    for (ev, hyp) in l:
+        change(df,ev, hyp)
+    print("end")
+    dna = change(df, "DNAatCS", "other_suspect")
     statement = change(df, "statement", "locCS")
     witness = change(df, "other_cs", "other_suspect")
     alibi = change(df, "other_alib", "other_suspect")
@@ -177,5 +182,3 @@ for lis in l:
 
 os.system("Rscript generatingNetworkAlleys.R")
 
-#calculate_LRs("thief")
-#calculate_LRs("innocent")

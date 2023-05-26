@@ -1,6 +1,14 @@
 net 
 { 
 }
+node other_thief 
+{
+  states = ( "0" "1" );
+}
+node other_suspect 
+{
+  states = ( "0" "1" );
+}
 node other_cs 
 {
   states = ( "0" "1" );
@@ -32,6 +40,14 @@ node locCS
 node statement 
 {
   states = ( "0" "1" );
+}
+potential ( other_thief | other_cs other_alib suspect ) 
+{
+  data = ((((0.90523077 0.09476923)(0.881376 0.118624))((0.92750929 0.07249071)(1.0 0.0)))(((0.8376511 0.1623489)(1.0 0.0))((0.3888889 0.6111111)(1.0 0.0)))) ;
+}
+potential ( other_suspect | other_thief ) 
+{
+  data = ((1.0 0.0)(0.0 1.0)) ;
 }
 potential ( other_cs | other_alib suspect victim ) 
 {
