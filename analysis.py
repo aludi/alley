@@ -18,6 +18,19 @@ def export_to_df(e, params):
     df.to_csv(f'out/data/{experiment_name}.csv')
 
 
+def transform_ret(ret):
+    d = {}
+    for x in ret:#per run
+        for run in x:
+            if run[4] == 1:
+                d[run[1]] = 1
+            else:
+                d[run[1]] = 0
+
+            print(run)
+    exit()
+
+
 def export_ret(r):
     df_list = []
     for x in r:
@@ -36,12 +49,13 @@ def merge_attempt():
 
 
 def perform_experiment():
-    runs = 200
+    runs = 10
     for i in range(0, 1):
         e = Experiment(run=runs, suspect="thief")
         params = {"experiment_name": "thief", "runs":runs}
         export_to_df(e,params)
         export_ret(e.r)
+        transform_ret(e.r)
         '''e1 = Experiment(run=runs, suspect="innocent")
         params = {"experiment_name": "innocent", "runs":runs}
         export_to_df(e1, params)'''
@@ -135,7 +149,7 @@ def calculate_all_change(agent_type):
 
 def calculate_all_change_merge(agent_type):
     df = pd.read_csv(f'out/data/merge.csv')
-    l = [("DNAatCS", "other_suspect"), ("statement", "locCS"),
+    l = [("DNAatCS", "suspect"), ("statement", "locCS"),
          ("other_cs", "other_suspect"), ("other_alib", "other_suspect")]
     for (ev, hyp) in l:
         change(df,ev, hyp)
@@ -154,7 +168,7 @@ such that we get frequency distributions related to the stae space?
 
 l = []
 for i in range(0, 1):
-    #perform_experiment()
+    perform_experiment()
     #merge_attempt()
 
     #d, s, w, a = calculate_LRs("thief")
@@ -162,7 +176,7 @@ for i in range(0, 1):
     #do, so, wo, ao = calculate_all_change("thief")
     #do, so, wo, ao = calculate_all_change_merge("thief")
 
-    l.append([calculate_all_change("thief"), calculate_all_change_merge("thief")])
+    l.append([calculate_all_change_merge("thief")])
 
 #calculate_prior(f'out/data/thief.csv', "suspect")
 #posterior(f'out/data/thief.csv', "DNAatCS", "suspect")

@@ -1,4 +1,4 @@
-Fri May 26 21:57:48 2023
+Fri May 26 22:11:10 2023
 
 
 Moral links:
@@ -10,10 +10,6 @@ Triangulating prime component with 1 member:
 This component is a clique of cost 2
 
 Triangulating prime component with 1 member:
-    suspect
-This component is a clique of cost 2
-
-Triangulating prime component with 1 member:
     thief
 This component is a clique of cost 2
 
@@ -22,7 +18,7 @@ Triangulating prime component with 1 member:
 This component is a clique of cost 2
 
 Triangulating prime component with 2 members:
-    other_suspect, DNAatCS
+    suspect, DNAatCS
 This component is a clique of cost 4
 
 Triangulating prime component with 2 members:
@@ -34,6 +30,10 @@ Triangulating prime component with 2 members:
 This component is a clique of cost 4
 
 Triangulating prime component with 2 members:
+    suspect, other_suspect
+This component is a clique of cost 4
+
+Triangulating prime component with 2 members:
     other_suspect, locCS
 This component is a clique of cost 4
 
@@ -42,19 +42,19 @@ Triangulating prime component with 2 members:
 This component is a clique of cost 4
 
 
-Total cost of triangulation for all prime components is 28
+Total cost of triangulation for all prime components is 30
 
 
 Elimination sequence:
 
-    DNAatCS
     other_alib
     other_cs
+    DNAatCS
+    suspect
     other_suspect
     statement
     locCS
     other_thief
-    suspect
     thief
     victim
 
@@ -68,27 +68,27 @@ Clique 8, 2 members, table size = 4:
     locCS, other_suspect
 
 Clique 7, 2 members, table size = 4:
-    other_suspect, other_cs
+    other_suspect, suspect
 
 Clique 6, 2 members, table size = 4:
-    other_suspect, other_alib
+    suspect, DNAatCS
 
 Clique 5, 2 members, table size = 4:
-    other_suspect, DNAatCS
+    other_suspect, other_cs
 
-Clique 4, 1 member, table size = 2:
-    victim
+Clique 4, 2 members, table size = 4:
+    other_suspect, other_alib
 
 Clique 3, 1 member, table size = 2:
-    thief
+    victim
 
 Clique 2, 1 member, table size = 2:
-    suspect
+    thief
 
 Clique 1, 1 member, table size = 2:
     other_thief
 
-Total clique table size: 28
+Total clique table size: 30
 
 
 The junction forest:
@@ -101,13 +101,14 @@ Cliques 8 and 9 linked, separator has 1 member and table size = 2:
 Cliques 7 and 8 linked, separator has 1 member and table size = 2:
     other_suspect
 
-Cliques 6 and 8 linked, separator has 1 member and table size = 2:
-    other_suspect
+Cliques 6 and 7 linked, separator has 1 member and table size = 2:
+    suspect
 
 Cliques 5 and 8 linked, separator has 1 member and table size = 2:
     other_suspect
 
-Creating junction tree with clique 4 as root ...
+Cliques 4 and 8 linked, separator has 1 member and table size = 2:
+    other_suspect
 
 Creating junction tree with clique 3 as root ...
 
@@ -119,13 +120,13 @@ Creating junction tree with clique 1 as root ...
 Assignment of potentials to cliques:
 
     Node other_thief assigned to clique 1
-    Node suspect assigned to clique 2
-    Node other_cs assigned to clique 7
-    Node other_alib assigned to clique 6
+    Node suspect assigned to clique 7
+    Node other_cs assigned to clique 5
+    Node other_alib assigned to clique 4
     Node other_suspect assigned to clique 8
-    Node victim assigned to clique 4
-    Node thief assigned to clique 3
-    Node DNAatCS assigned to clique 5
+    Node victim assigned to clique 3
+    Node thief assigned to clique 2
+    Node DNAatCS assigned to clique 6
     Node locCS assigned to clique 9
     Node statement assigned to clique 9
 

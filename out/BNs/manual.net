@@ -51,7 +51,7 @@ net
 
 node other_thief
 {
-    position = (188 244);
+    position = (188 247);
     states = ("0" "1");
     HR_LinkControlPoints = "";
     HR_LinkGroup = "";
@@ -61,8 +61,10 @@ node other_thief
 node suspect
 {
     label = "";
-    position = (188 304);
+    position = (604 342);
     states = ("0" "1");
+    HR_LinkGroup = "[DNAatCS:0]";
+    HR_LinkMode = "[DNAatCS:0]";
     HR_Group = "0";
     HR_Desc = "";
     HR_State_1 = "";
@@ -71,7 +73,7 @@ node suspect
 
 node other_cs
 {
-    position = (680 236);
+    position = (572 241);
     states = ("0" "1");
     HR_LinkControlPoints = "";
     HR_LinkGroup = "";
@@ -80,27 +82,27 @@ node other_cs
 
 node other_alib
 {
-    position = (584 232);
+    position = (469 232);
     states = ("0" "1");
 }
 
 node other_suspect
 {
     label = "";
-    position = (543 327);
+    position = (473 296);
     states = ("0" "1");
     HR_Group = "0";
     HR_Desc = "";
     HR_State_1 = "";
     HR_State_0 = "";
     HR_LinkControlPoints = "";
-    HR_LinkGroup = "[DNAatCS:0][other_alib:0][other_cs:0]";
-    HR_LinkMode = "[DNAatCS:0][other_alib:0][other_cs:0]";
+    HR_LinkGroup = "[other_alib:0][other_cs:0][suspect:0]";
+    HR_LinkMode = "[other_alib:0][other_cs:0][suspect:0]";
 }
 
 node victim
 {
-    position = (189 439);
+    position = (189 442);
     states = ("0" "1");
     HR_LinkControlPoints = "";
     HR_LinkGroup = "";
@@ -109,13 +111,13 @@ node victim
 
 node thief
 {
-    position = (188 368);
+    position = (188 371);
     states = ("0" "1");
 }
 
 node DNAatCS
 {
-    position = (469 245);
+    position = (611 420);
     states = ("0" "1");
     HR_LinkControlPoints = "";
     HR_LinkGroup = "";
@@ -124,16 +126,16 @@ node DNAatCS
 
 node locCS
 {
-    position = (446 383);
+    position = (446 386);
     states = ("0" "1");
     HR_LinkControlPoints = "";
     HR_LinkGroup = "[statement:0][other_suspect:0]";
-    HR_LinkMode = "[statement:0][suspect:0]";
+    HR_LinkMode = "[statement:0][suspect:0][other_suspect:0]";
 }
 
 node statement
 {
-    position = (326 344);
+    position = (326 347);
     states = ("0" "1");
 }
 
@@ -142,9 +144,11 @@ potential (other_thief)
     data = ( 0.909305 0.0906949 );
 }
 
-potential (suspect)
+potential (suspect | other_suspect)
 {
-    data = ( 1 0 );
+    data
+     = (( 1 0 )	%  other_suspect=0
+	( 1 0 ));	%  other_suspect=1
 }
 
 potential (other_cs | other_suspect)
@@ -178,11 +182,11 @@ potential (thief)
     data = ( 1 0 );
 }
 
-potential (DNAatCS | other_suspect)
+potential (DNAatCS | suspect)
 {
     data
-     = (( 0.788889 0.211111 )	%  other_suspect=0
-	( 0.788889 0.211111 ));	%  other_suspect=1
+     = (( 0.788889 0.211111 )	%  suspect=0
+	( 0.788889 0.211111 ));	%  suspect=1
 }
 
 potential (locCS)
