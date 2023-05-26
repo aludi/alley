@@ -1,83 +1,138 @@
-net 
-{ 
-}
-node other_thief 
+net
 {
-  states = ( "0" "1" );
+    node_size = (80 40);
+    HR_realname_at_least_1_alibi_witness = "at_least_1_alibi_witness";
+    HR_realname_at_least_1_cs_witness = "at_least_1_cs_witness";
+    HR_realname_statement = "statement";
+    HR_realname_locCS = "locCS";
+    HR_realname_DNAatCS = "DNAatCS";
+    HR_realname_suspect = "suspect";
+    HR_DBN_Num_Slices = "5";
+    HR_Desc = "";
+    HR_OOBN_CheckConsistency = "1";
+    HR_OOBN_FitExpand = "1";
+    HR_Zoom_ZoomFactor = "100";
+    HR_Groups_GroupColors = "";
+    HR_Groups_GroupNames = "";
+    HR_Groups_UserGroupsNo = "0";
+    HR_Utility_Link = "63";
+    HR_Probabilistic_Link = "63";
+    HR_Functional_Link = "63";
+    HR_Binding_Link = "63";
+    HR_Information_Arc = "63";
+    HR_Color_Interface = "21";
+    HR_Color_Instance = "0";
+    HR_Color_DiscreteFunction = "5";
+    HR_Color_Function = "4";
+    HR_Color_Utility = "36";
+    HR_Color_Decision = "17";
+    HR_Color_ContinuousChance = "48";
+    HR_Color_DiscreteChance = "16";
+    HR_Monitor_InitSD = "2";
+    HR_Monitor_Utility_Arrange = "0";
+    HR_Monitor_Mean_Variance = "1";
+    HR_Monitor_Chance_Utility = "1";
+    HR_Monitor_InitStates = "5";
+    HR_Monitor_OpenGraph = "0";
+    HR_Monitor_GraphPrecision = "100";
+    HR_Monitor_AutoUpdGraph = "0";
+    HR_Compile_MaxMinimalSeparators = "100000";
+    HR_Compile_ApproxEpsilon = "1.0E-5";
+    HR_Compile_Approximate = "0";
+    HR_Compile_SaveToMemory = "0";
+    HR_Compile_Compress = "0";
+    HR_Compile_TriangMethod = "0";
+    HR_Propagate_AutoNormal = "1";
+    HR_Propagate_AutoSum = "1";
+    HR_Propagate_Auto = "1";
+    HR_Font_Italic = "0";
+    HR_Font_Weight = "400";
+    HR_Font_Size = "-12";
+    HR_Font_Name = "com.apple.laf.AquaFonts$DerivedUIResourceFont[family=Lucida Grande,name=Lucida Grande,style=plain,size=13]";
+    HR_Grid_GridShow = "0";
+    HR_Grid_GridSnap = "0";
+    HR_Grid_Y = "40";
+    HR_Grid_X = "40";
 }
-node suspect 
+
+node suspect
 {
-  states = ( "0" "1" );
+    position = (200 140);
+    states = ("0" "1");
+    HR_LinkControlPoints = "";
+    HR_LinkGroup = "[at_least_1_alibi_witness:0][at_least_1_cs_witness:0][DNAatCS:0]";
+    HR_LinkMode = "[at_least_1_alibi_witness:0][at_least_1_cs_witness:0][DNAatCS:0]";
 }
-node other_cs 
+
+node DNAatCS
 {
-  states = ( "0" "1" );
+    position = (300 40);
+    states = ("0" "1");
 }
-node other_alib 
+
+node locCS
 {
-  states = ( "0" "1" );
+    position = (150 240);
+    states = ("0" "1");
+    HR_LinkControlPoints = "";
+    HR_LinkGroup = "[statement:0][suspect:0]";
+    HR_LinkMode = "[statement:0][suspect:0]";
 }
-node other_suspect 
+
+node statement
 {
-  states = ( "0" "1" );
+    position = (100 140);
+    states = ("0" "1");
 }
-node victim 
+
+node at_least_1_cs_witness
 {
-  states = ( "0" "1" );
+    position = (200 40);
+    states = ("0" "1");
 }
-node thief 
+
+node at_least_1_alibi_witness
 {
-  states = ( "0" "1" );
+    position = (100 40);
+    states = ("0" "1");
 }
-node DNAatCS 
+
+potential (suspect | locCS)
 {
-  states = ( "0" "1" );
+    data
+     = (( 0.97561 0.0243902 )	%  locCS=0
+	( 0.555556 0.444444 ));	%  locCS=1
 }
-node locCS 
+
+potential (DNAatCS | suspect)
 {
-  states = ( "0" "1" );
+    data
+     = (( 0.794444 0.205556 )	%  suspect=0
+	( 0 1 ));	%  suspect=1
 }
-node statement 
+
+potential (locCS)
 {
-  states = ( "0" "1" );
+    data = ( 0.82 0.18 );
 }
-potential ( other_thief ) 
+
+potential (statement | locCS)
 {
-  data = ( 0.9 0.1 );
+    data
+     = (( 1 0 )	%  locCS=0
+	( 0 1 ));	%  locCS=1
 }
-potential ( suspect | other_suspect ) 
+
+potential (at_least_1_cs_witness | suspect)
 {
-  data = ((0.9 0.1)(0.9 0.1)) ;
+    data
+     = (( 0.855556 0.144444 )	%  suspect=0
+	( 0.55 0.45 ));	%  suspect=1
 }
-potential ( other_cs | other_suspect ) 
+
+potential (at_least_1_alibi_witness | suspect)
 {
-  data = ((0.93244444 0.06755556)(0.8895 0.1105)) ;
-}
-potential ( other_alib | other_suspect ) 
-{
-  data = ((0.96605556 0.03394444)(0.964 0.036)) ;
-}
-potential ( other_suspect | locCS ) 
-{
-  data = ((0.9 0.1)(0.9 0.1)) ;
-}
-potential ( victim ) 
-{
-  data = ( 0.9245 0.0755 );
-}
-potential ( thief ) 
-{
-  data = ( 0.9 0.1 );
-}
-potential ( DNAatCS | suspect ) 
-{
-  data = ((0.7566667 0.2433333)(0.05 0.95)) ;
-}
-potential ( locCS ) 
-{
-  data = ( 0.8095 0.1905 );
-}
-potential ( statement | locCS ) 
-{
-  data = ((1.0 0.0)(0.0 1.0)) ;
+    data
+     = (( 0.916667 0.0833333 )	%  suspect=0
+	( 0.95 0.05 ));	%  suspect=1
 }

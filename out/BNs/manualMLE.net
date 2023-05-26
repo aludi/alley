@@ -1,31 +1,7 @@
 net 
 { 
 }
-node other_thief 
-{
-  states = ( "0" "1" );
-}
 node suspect 
-{
-  states = ( "0" "1" );
-}
-node other_cs 
-{
-  states = ( "0" "1" );
-}
-node other_alib 
-{
-  states = ( "0" "1" );
-}
-node other_suspect 
-{
-  states = ( "0" "1" );
-}
-node victim 
-{
-  states = ( "0" "1" );
-}
-node thief 
 {
   states = ( "0" "1" );
 }
@@ -41,43 +17,35 @@ node statement
 {
   states = ( "0" "1" );
 }
-potential ( other_thief ) 
+node at_least_1_cs_witness 
 {
-  data = ( 0.9 0.1 );
+  states = ( "0" "1" );
 }
-potential ( suspect | other_suspect ) 
+node at_least_1_alibi_witness 
 {
-  data = ((0.9 0.1)(0.9 0.1)) ;
+  states = ( "0" "1" );
 }
-potential ( other_cs | other_suspect ) 
+potential ( suspect | locCS ) 
 {
-  data = ((0.93244444 0.06755556)(0.8895 0.1105)) ;
-}
-potential ( other_alib | other_suspect ) 
-{
-  data = ((0.96605556 0.03394444)(0.964 0.036)) ;
-}
-potential ( other_suspect | locCS ) 
-{
-  data = ((0.9 0.1)(0.9 0.1)) ;
-}
-potential ( victim ) 
-{
-  data = ( 0.9245 0.0755 );
-}
-potential ( thief ) 
-{
-  data = ( 0.9 0.1 );
+  data = ((0.97560976 0.02439024)(0.5555556 0.4444444)) ;
 }
 potential ( DNAatCS | suspect ) 
 {
-  data = ((0.7566667 0.2433333)(0.05 0.95)) ;
+  data = ((0.7944444 0.2055556)(0.0 1.0)) ;
 }
 potential ( locCS ) 
 {
-  data = ( 0.8095 0.1905 );
+  data = ( 0.82 0.18 );
 }
 potential ( statement | locCS ) 
 {
   data = ((1.0 0.0)(0.0 1.0)) ;
+}
+potential ( at_least_1_cs_witness | suspect ) 
+{
+  data = ((0.8555556 0.1444444)(0.55 0.45)) ;
+}
+potential ( at_least_1_alibi_witness | suspect ) 
+{
+  data = ((0.91666667 0.08333333)(0.95 0.05)) ;
 }

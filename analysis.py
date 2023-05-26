@@ -18,17 +18,49 @@ def export_to_df(e, params):
     df.to_csv(f'out/data/{experiment_name}.csv')
 
 
-def transform_ret(ret):
-    d = {}
-    for x in ret:#per run
-        for run in x:
-            if run[4] == 1:
-                d[run[1]] = 1
-            else:
-                d[run[1]] = 0
+def transform_ret(ret): # at least 1 other agent says about them that they were at CS/had alibi.
+    ag_list = []
+    run_num = 0
 
-            print(run)
-    exit()
+    for x in ret:#per run
+        d_cs = {}
+        d_al = {}
+
+        for i in range(0, 10):   # num agents
+            d_cs[i] = 0
+            d_al[i] = 0
+
+        for run in x:
+            #print(run)
+            run_num = run[0]
+            if run[5] == 1:
+                if run[1] != run[2]:    # no self incrimination
+                    d_cs[run[2]] += 1  # agent
+            if run[6] == 1:
+                d_al[run[2]] += 1
+
+        print(run_num)
+        for i in d_cs.keys():
+            print(f"{i} was seen by {d_cs[i]} agents at crime scene")
+            print(f"{i} was seen by {d_al[i]} agents away from crime scene")
+            if d_cs[i] > 0:
+                cs_witness = 1
+            else:
+                cs_witness = 0
+            if d_al[i] > 1:
+                alibi_witness = 1
+            else:
+                alibi_witness = 0
+
+            ag_list.append([run_num, i, cs_witness, alibi_witness])
+
+    print(ag_list)
+
+    df = pd.DataFrame(ag_list, columns=["run", "agentID", "at_least_1_cs_witness", "at_least_1_alibi_witness"])
+    df.to_csv(f'out/data/witness.csv')
+
+
+    #exit()
 
 
 def export_ret(r):
@@ -41,15 +73,14 @@ def export_ret(r):
 
 def merge_attempt():
     df1 = pd.read_csv(f'out/data/thief.csv')
-    df2 = pd.read_csv(f'out/data/r.csv')
-    r = pd.merge(df2, df1, on=["run", "agentID"], how='outer')
+    df2 = pd.read_csv(f'out/data/witness.csv')
+    r = pd.merge(df1, df2, on=["run", "agentID"], how='outer')
     r.to_csv(f'out/data/merge.csv')
     pass
 
 
-
 def perform_experiment():
-    runs = 10
+    runs = 100
     for i in range(0, 1):
         e = Experiment(run=runs, suspect="thief")
         params = {"experiment_name": "thief", "runs":runs}
@@ -150,14 +181,15 @@ def calculate_all_change(agent_type):
 def calculate_all_change_merge(agent_type):
     df = pd.read_csv(f'out/data/merge.csv')
     l = [("DNAatCS", "suspect"), ("statement", "locCS"),
-         ("other_cs", "other_suspect"), ("other_alib", "other_suspect")]
+         ("at_least_1_cs_witness", "suspect"), ("at_least_1_alibi_witness", "suspect")]
+
     for (ev, hyp) in l:
         change(df,ev, hyp)
     print("end")
-    dna = change(df, "DNAatCS", "other_suspect")
+    dna = change(df, "DNAatCS", "suspect")
     statement = change(df, "statement", "locCS")
-    witness = change(df, "other_cs", "other_suspect")
-    alibi = change(df, "other_alib", "other_suspect")
+    witness = change(df, "at_least_1_cs_witness", "suspect")
+    alibi = change(df, "at_least_1_alibi_witness", "suspect")
     return dna, statement, witness, alibi
 
 '''
@@ -169,7 +201,7 @@ such that we get frequency distributions related to the stae space?
 l = []
 for i in range(0, 1):
     perform_experiment()
-    #merge_attempt()
+    merge_attempt()
 
     #d, s, w, a = calculate_LRs("thief")
     #do, so, wo, ao = calculate_all_odds("thief")

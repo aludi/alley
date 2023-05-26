@@ -49,149 +49,65 @@ net
     HR_Grid_X = "40";
 }
 
-node other_thief
-{
-    position = (188 247);
-    states = ("0" "1");
-    HR_LinkControlPoints = "";
-    HR_LinkGroup = "";
-    HR_LinkMode = "";
-}
-
 node suspect
 {
-    label = "";
-    position = (604 342);
-    states = ("0" "1");
-    HR_LinkGroup = "[DNAatCS:0]";
-    HR_LinkMode = "[DNAatCS:0]";
-    HR_Group = "0";
-    HR_Desc = "";
-    HR_State_1 = "";
-    HR_State_0 = "";
-}
-
-node other_cs
-{
-    position = (572 241);
+    position = (232 170);
     states = ("0" "1");
     HR_LinkControlPoints = "";
-    HR_LinkGroup = "";
-    HR_LinkMode = "";
-}
-
-node other_alib
-{
-    position = (469 232);
-    states = ("0" "1");
-}
-
-node other_suspect
-{
-    label = "";
-    position = (473 296);
-    states = ("0" "1");
-    HR_Group = "0";
-    HR_Desc = "";
-    HR_State_1 = "";
-    HR_State_0 = "";
-    HR_LinkControlPoints = "";
-    HR_LinkGroup = "[other_alib:0][other_cs:0][suspect:0]";
-    HR_LinkMode = "[other_alib:0][other_cs:0][suspect:0]";
-}
-
-node victim
-{
-    position = (189 442);
-    states = ("0" "1");
-    HR_LinkControlPoints = "";
-    HR_LinkGroup = "";
-    HR_LinkMode = "";
-}
-
-node thief
-{
-    position = (188 371);
-    states = ("0" "1");
+    HR_LinkGroup = "[at_least_1_cs_witness:0][DNAatCS:0][at_least_1_alibi_witness:0]";
+    HR_LinkMode = "[at_least_1_cs_witness:0][DNAatCS:0][at_least_1_alibi_witness:0]";
 }
 
 node DNAatCS
 {
-    position = (611 420);
+    position = (201 69);
     states = ("0" "1");
-    HR_LinkControlPoints = "";
-    HR_LinkGroup = "";
-    HR_LinkMode = "";
 }
 
 node locCS
 {
-    position = (446 386);
+    position = (99 248);
     states = ("0" "1");
     HR_LinkControlPoints = "";
-    HR_LinkGroup = "[statement:0][other_suspect:0]";
-    HR_LinkMode = "[statement:0][suspect:0][other_suspect:0]";
+    HR_LinkGroup = "[suspect:0][statement:0]";
+    HR_LinkMode = "[suspect:0][statement:0]";
 }
 
 node statement
 {
-    position = (326 347);
+    position = (65 167);
     states = ("0" "1");
 }
 
-potential (other_thief)
+node at_least_1_cs_witness
 {
-    data = ( 0.909305 0.0906949 );
+    position = (100 77);
+    states = ("0" "1");
 }
 
-potential (suspect | other_suspect)
+node at_least_1_alibi_witness
 {
-    data
-     = (( 1 0 )	%  other_suspect=0
-	( 1 0 ));	%  other_suspect=1
+    position = (325 69);
+    states = ("0" "1");
 }
 
-potential (other_cs | other_suspect)
-{
-    data
-     = (( 0.948101 0.0518987 )	%  other_suspect=0
-	( 0.948101 0.0518987 ));	%  other_suspect=1
-}
-
-potential (other_alib | other_suspect)
-{
-    data
-     = (( 0.96256 0.0374396 )	%  other_suspect=0
-	( 0.96256 0.0374396 ));	%  other_suspect=1
-}
-
-potential (other_suspect | locCS)
+potential (suspect | locCS)
 {
     data
      = (( 0.9 0.1 )	%  locCS=0
 	( 0.9 0.1 ));	%  locCS=1
 }
 
-potential (victim)
-{
-    data = ( 0.911111 0.0888889 );
-}
-
-potential (thief)
-{
-    data = ( 1 0 );
-}
-
 potential (DNAatCS | suspect)
 {
     data
-     = (( 0.788889 0.211111 )	%  suspect=0
-	( 0.788889 0.211111 ));	%  suspect=1
+     = (( 0.794444 0.205556 )	%  suspect=0
+	( 0.794444 0.205556 ));	%  suspect=1
 }
 
 potential (locCS)
 {
-    data = ( 0.923077 0.0769231 );
+    data = ( 0.888889 0.111111 );
 }
 
 potential (statement | locCS)
@@ -199,4 +115,18 @@ potential (statement | locCS)
     data
      = (( 1 0 )	%  locCS=0
 	( 1 0 ));	%  locCS=1
+}
+
+potential (at_least_1_cs_witness | suspect)
+{
+    data
+     = (( 0.9625 0.0375 )	%  suspect=0
+	( 0.9625 0.0375 ));	%  suspect=1
+}
+
+potential (at_least_1_alibi_witness | suspect)
+{
+    data
+     = (( 0.92 0.08 )	%  suspect=0
+	( 0.92 0.08 ));	%  suspect=1
 }
