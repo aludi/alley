@@ -40,7 +40,7 @@ class MoneyAgent(mesa.Agent):
         self.DNA_dropped = []
         self.value = random.randint(0, 10)
 
-        print(f"DNA of agent {self.color} is {self.code}")
+        #print(f"DNA of agent {self.color} is {self.code}")
 
 
     def set_thief(self):
@@ -265,7 +265,7 @@ class MoneyAgent(mesa.Agent):
                 self.target.value = -1
                 self.model.steal_time = self.model.schedule.time
                 self.model.steal_location = self.pos
-                self.model.crime_model.set_victim_and_random(self.target)
+                self.model.crime_model.set_victim(self.target)
             else:
                 print("stealing unsuccessful")
 

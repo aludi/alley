@@ -100,278 +100,28 @@ class Experiment():
     odds = p + p*odds
     odds = p(1+odds)
     p = odds/(1+odds)'''
-    def __init__(self, run):
-        prob_correct_match = 0
-        prob_math_innocent = 0
-
-        prob_random_trace_match_thief = 0
-        prob_random_trace_match_arbit = 0
-
-        prior_random = []
-        prior_thief = []
-        random_draw_from_thief = 0
-
-        witness_guilt = []
-        witness_in = []
-        witness_base_rate = []
-
-        alibi_guilt = []
-        alibi_in = []
-        alibi_base_rate = []
-
-        personal_loc_guilt = []
-        personal_away_guilt= []
-        personal_loc_random= []
-        personal_away_random= []
-        personal_loc_base= []
-        personal_away_base= []
-
-        thief_present_crime_scene = []
-        thief_away_crime_scene = []
-        other_present_crime_scene = []
-        other_away_crime_scene = []
-
+    def __init__(self, run, suspect):
+        self.headings = ["run", "agentID", "suspect", "victim", "thief", "DNAatCS", "locCS", "statement"]
+        self.total_states = []
+        self.r = []
         num_agents = 10
-
         for i in range(0, run):
             model = MoneyModel(N=num_agents, width=20, height=20)
+            model.crime_model.set_run(i)
+            model.crime_model.set_suspect(suspect)
             for j in range(500):
                 model.step()
                 if model.reported == True:
                     break
-            model.crime_model.calculate_probabilities()
-            exit()
-            model.crime_model.select_trace()
-            model.crime_model.select_eye_witness()
-            model.crime_model.calculate_alibi()
-            model.crime_model.personal_testimony()
-
-            if model.crime_model.sim_ran == 1:
-                prob_math_innocent+= 1
-            if model.crime_model.sim_thief == 1:
-                prob_correct_match += 1
-            if model.crime_model.sim_ran_ran == 1:
-                prob_random_trace_match_arbit+= 1
-            if model.crime_model.sim_thief_ran == 1:
-                prob_random_trace_match_thief += 1
-            if model.crime_model.random_draw.owner.thief:
-                random_draw_from_thief += 1
-
-            #print(model.crime_model.total_witness_guilt)
-            #print(model.crime_model.total_witness_inn)
-
-            witness_guilt.append(model.crime_model.total_witness_guilt)
-            witness_in.append(model.crime_model.total_witness_inn)
-            witness_base_rate.append(model.crime_model.base_rate_surrounding)
-
-            alibi_guilt.append(model.crime_model.alibi_guilt)
-            alibi_in.append(model.crime_model.alibi_inn)
-            alibi_base_rate.append(model.crime_model.base_rate_alibi)
-
-            p_crime_scene_thief = model.crime_model.thief_present_crime_scene / (
-                        model.crime_model.thief_present_crime_scene + model.crime_model.thief_away_crime_scene)
-            p_crime_scene_other = model.crime_model.other_present_crime_scene / (
-                        model.crime_model.other_present_crime_scene + model.crime_model.other_away_crime_scene)
-
-            p_away_thief = model.crime_model.thief_away_crime_scene / (
-                    model.crime_model.thief_present_crime_scene + model.crime_model.thief_away_crime_scene)
-            p_away_other = model.crime_model.other_away_crime_scene / (
-                    model.crime_model.other_present_crime_scene + model.crime_model.other_away_crime_scene)
-
-            # probabilities for how many times the agent is away or not
-            print(p_crime_scene_thief, p_crime_scene_other)
-            print(p_away_thief, p_away_other)
-            thief_present_crime_scene.append(p_crime_scene_thief)
-            thief_away_crime_scene.append(p_away_thief)
-            other_present_crime_scene.append(p_crime_scene_other)
-            other_away_crime_scene.append(p_away_other)
-
-            try:
-                personal_loc_guilt.append(model.crime_model.trueLoc_report_thief / p_crime_scene_thief)
-            except ZeroDivisionError:
-                personal_loc_guilt.append(0)
-
-            try:
-                personal_away_guilt.append(model.crime_model.trueAway_report_thief/p_away_thief)
-            except ZeroDivisionError:
-                personal_away_guilt.append(0)
-
-            try:
-                personal_loc_base.append(model.crime_model.trueLoc_report_innocent / p_crime_scene_other)
-                personal_loc_random.append(model.crime_model.trueLoc_report_target/p_crime_scene_other)
-            except ZeroDivisionError:
-                personal_loc_base.append(0)
-                personal_loc_random.append(0)
-            try:
-                personal_away_random.append(model.crime_model.trueAway_report_target/p_away_other)
-                personal_away_base.append(model.crime_model.trueAway_report_innocent/p_away_other)
-            except ZeroDivisionError:
-                personal_away_random.append(0)
-                personal_away_base.append(0)
-
-            #print(model.crime_model.thief_present_crime_scene)
-            #print(model.crime_model.thief_away_crime_scene)
+            states, r = model.crime_model.calculate_probabilities()
+            self.total_states.append(states)
+            self.r.append(r)
 
 
-
-            ''''p_stat_given_cs_thief = model.crime_model.trueLoc_report_thief/p_crime_scene_thief
-            p_stat_given_cs_other = model.crime_model.trueLoc_report_innocent/p_crime_scene_other
-
-            p_stat_given_away_thief = model.crime_model.trueAway_report_thief / p_away_thief
-            p_stat_given_away_other = model.crime_model.trueAway_report_innocentr / p_away_other
-
-            print(p_stat_given_cs_thief, p_stat_given_cs_other)
-            print(p_stat_given_away_thief, p_stat_given_away_other)'''
-
-            #thief_present_crime_scene.append(thief_present_crime_scene)
-            #self.thief_away_crime_scene = 0
-            #self.other_present_crime_scene = 0
-            #self.other_away_crime_scene = 0
-
-
-            prior_random.append(model.crime_model.prior_random)
-            prior_thief.append(model.crime_model.prior_thief)
-
-
-        #print(prob_correct_match)
-        #print(prob_math_innocent)
-
-        PR_random = sum(prior_random)/len(prior_random)
-        PR_thief = sum(prior_thief)/len(prior_thief)
-        if prob_math_innocent == 0:
-            prob_math_innocent = 0.000001
-        if prob_random_trace_match_arbit == 0:
-            prob_random_trace_match_arbit = 0.00001
-
-        self.thief_LR = ["thief"]
-        self.other_LR = ["arbit"]
-
-        print("======================    DNA TRACE    ============================")
-        print(f"LR_trace(thief) == {prob_correct_match/prob_math_innocent}")
-        print(f"posteriorODDS_trace(thief) == {run*(prob_correct_match/prob_math_innocent)}")
-        odds1 = (prob_correct_match/prob_math_innocent)
-        print(f"posteriorPROB_trace(thief) left by thief == {odds1 / (1 + odds1)}")
-        print(f"posteriorPROB_trace(thief) left by innocent == {1 - (odds1 / (1 + odds1))}")
-        print("====================================================================")
-        print(f"Random trace from thief in {random_draw_from_thief} out of {run} runs")
-        print(f"LR_trace(random) == {prob_random_trace_match_thief/prob_random_trace_match_arbit}")
-        print(f"posteriorODDS_trace(random) == {(PR_thief/PR_random)*(prob_random_trace_match_thief/prob_random_trace_match_arbit)}")
-        odds = (PR_thief / PR_random) * (prob_random_trace_match_thief / prob_random_trace_match_arbit)
-
-        print(f"posteriorPROB_trace(random) left by thief == {odds/(1+odds)}")
-        print(f"posteriorPROB_trace(random) left by innocent == {1 - (odds/(1+odds))}")
-        print("====================================================================")
-
-        self.thief_LR.append(prob_correct_match/prob_math_innocent)
-        self.other_LR.append(prob_random_trace_match_thief/prob_random_trace_match_arbit)
-
-        print("======================    WITNESSES     ============================")
-        #print(witness_guilt)
-        #print(witness_in)
-        #print(witness_base_rate)
-        av_guilt = sum(witness_guilt)/len(witness_guilt)
-        av_in = sum(witness_in)/len(witness_in)
-        av_base = sum(witness_base_rate)/len(witness_base_rate)
-
-        #print(f"average number of witness guilt {av_guilt}")
-        #print(f"average number of witness inn {av_in}")
-        #print(f"average number of witness base rate {av_base}")
-        print("====================================================================")
-
-        print(f"LR_witness(thief) == {av_guilt/av_base}")
-        print(f"posteriorOdds_witness(thief) == {(1/(num_agents-1))*(av_guilt/av_base)}")
-        odds2 = (1/(num_agents-1))*(av_guilt/av_base)
-        print(f"posteriorPROB_witness(thief) by thief == {odds2 / (1 + odds2)}")
-        print(f"posteriorPROB_witness(thief) by innocent == {1 - (odds2 / (1 + odds2))}")
-
-        print("====================================================================")
-
-        print(f"LR_witness(innocent) == {av_in/av_base}")
-        print(f"posteriorOdds_witness(innocent) == {(1/(num_agents-1))*(av_in/av_base)}")
-        odds3 = (1/(num_agents-1))*(av_in/av_base)
-        print(f"posteriorPROB_witness(innocent) left by thief == {odds3 / (1 + odds3)}")
-        print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
-
-        self.thief_LR.append(av_guilt/av_base)
-        self.other_LR.append(av_in/av_base)
-
-
-        print("======================      ALIBI       ============================")
-        #print(alibi_guilt)
-        #print(alibi_in)
-        #print(alibi_base_rate)
-        av_guilt = sum(alibi_guilt) / len(alibi_guilt)
-        av_in = sum(alibi_in) / len(alibi_in)
-        av_base = sum(alibi_base_rate) / len(alibi_base_rate)
-        #print(av_guilt)
-        #print(av_in)
-        #print(av_base)
-
-        #print(f"average number of witness guilt {av_guilt}")
-        #print(f"average number of witness inn {av_in}")
-        #print(f"average number of witness base rate {av_base}")
-        print("====================================================================")
-
-        print(f"LR_witness(thief) == {av_guilt / av_base}")
-        print(f"posteriorOdds_witness(thief) == {(1 / (num_agents - 1)) * (av_guilt / av_base)}")
-        odds2 = (1 / (num_agents - 1)) * (av_guilt / av_base)
-        print(f"posteriorPROB_witness(thief) by thief == {odds2 / (1 + odds2)}")
-        print(f"posteriorPROB_witness(thief) by innocent == {1 - (odds2 / (1 + odds2))}")
-
-        print("====================================================================")
-
-        print(f"LR_witness(innocent) == {av_in / av_base}")
-        print(f"posteriorOdds_witness(innocent) == {(1 / (num_agents - 1)) * (av_in / av_base)}")
-        odds3 = (1 / (num_agents - 1)) * (av_in / av_base)
-        print(f"posteriorPROB_witness(innocent) left by thief == {odds3 / (1 + odds3)}")
-        print(f"posteriorPROB_witness(innocent) left by innocent == {1 - (odds3 / (1 + odds3))}")
-
-
-        self.thief_LR.append(av_guilt/av_base)
-        self.other_LR.append(av_in/av_base)
-
-
-
-        print("======================     PERSONAL     ============================")
-
-        av_loc_guilt = sum(personal_loc_guilt)/len(personal_loc_guilt)
-        av_away_guilt = sum(personal_away_guilt)/len(personal_away_guilt)
-
-        av_loc_random = sum(personal_loc_random)/len(personal_loc_random)
-        av_away_random = sum(personal_away_random)/len(personal_away_random)
-
-        av_loc_base = sum(personal_loc_base)/len(personal_loc_base)
-        av_away_base = sum(personal_away_base)/len(personal_away_base)
-
-        Prior_thief_cs = sum(thief_present_crime_scene)/len(thief_present_crime_scene)
-        Prior_thief_away = sum(thief_away_crime_scene)/len(thief_away_crime_scene)
-        Prior_other_cs = sum(other_present_crime_scene)/len(other_present_crime_scene)
-        Prior_other_away = sum(other_away_crime_scene)/len(other_away_crime_scene)
-        print(Prior_thief_cs, Prior_thief_away)
-        print(Prior_other_cs, Prior_other_away)
-
-        print(f"LR_personal(thief) == {av_loc_guilt / av_away_guilt}")
-        print(f"posteriorOdds_personal(thief) == {(Prior_thief_cs / (Prior_thief_away)) * (av_loc_guilt / av_away_guilt)}")
-        odds2 = (Prior_thief_cs / (Prior_thief_away)) * (av_loc_guilt / av_away_guilt)
-        print(f"posteriorPROB_personal(thief) at cs == {odds2 / (1 + odds2)}")
-        print(f"posteriorPROB_personal(thief) at niet cs == {1 - (odds2 / (1 + odds2))}")
-
-        print("====================================================================")
-
-        print(f"LR_personal(innocent) == {av_loc_random / av_away_random}")
-        print(f"posteriorOdds_personal(innocent) == {(Prior_other_cs / (Prior_other_away)) * (av_loc_random / av_away_random)}")
-        odds2 = (Prior_other_cs / (Prior_other_away)) * (av_loc_random /av_away_random)
-        print(f"posteriorPROB_personal(innocent) at cs == {odds2 / (1 + odds2)}")
-        print(f"posteriorPROB_personal(innocent) at niet cs == {1 - (odds2 / (1 + odds2))}")
-
-
-        self.thief_LR.append(av_guilt/av_base)
-        self.other_LR.append(av_in/av_base)
-
-        print("====================================================================")
-        print("====================================================================")
-
-
+    def print_table(self):
+        for row in self.total_states:
+            for r in row:
+                print(r[0], r)
 
 
 
@@ -383,27 +133,33 @@ class CrimeModel():
         # thief
         self.thief = self.model.agent_list[0]
         # random suspect
-        self.random=self.thief
-        while self.random == self.thief:
-            self.random = random.choice(self.model.agent_list)
-        #print(self.random.color)
-        # victim
         self.suspect = self.thief
         self.victim = 0
         self.total_witness_inn = 0
         self.total_witness_guilt = 0
         self.reported_time = 0
 
-    def set_victim_and_random(self, agent):
+    def set_suspect(self, agent_type):
+        # default is thief
+        print("in set suspect")
+        if agent_type == "innocent":
+            while self.suspect == self.thief or self.suspect == self.victim:
+                self.suspect = random.choice(self.model.agent_list)
+        if agent_type == "thief":
+            self.suspect = self.thief
+        print(self.suspect.thief)
+
+    def set_run(self, run):
+        self.run = run
+
+    def set_victim(self, agent):
         self.victim = agent
-        while self.random == self.thief or self.random == self.victim:
-            self.random = random.choice(self.model.agent_list)
 
     def set_reported_time(self, t):
         self.reported_time = t
 
     def who_is_suspect(self, agent):
-        if agent == self.random or agent == self.thief:
+        if agent == self.suspect:
             return 1
         else:
             return 0
@@ -419,24 +175,75 @@ class CrimeModel():
         else:
             return 0
 
+    def seen_at_crime_scene(self, agent):
+        l = []
+        for other_agent in self.model.agent_list:
+            if other_agent == self.thief:
+                x = 1
+            else:
+                x = 0
+            if other_agent == self.suspect:
+                y= 1
+            else:
+                y = 0
+            close, alibi = self.check_distance_memory(agent, other_agent)
+            l.append([agent.unique_id, other_agent.unique_id, x, y, close, alibi])
+        return l
+
+    def check_distance_memory(self, agent, other):
+        close = 0
+        alibi = 0
+        locs = self.check_memory_near_victim(agent, other)
+        for (v_pos, o_pos) in locs:
+            dist = self.get_distance(v_pos, o_pos)
+            if dist < 2:
+                close = 1
+            if dist > 5:
+                alibi = 1
+        return close, alibi
+
+
+    def check_memory_near_victim(self, agent, other_agent):
+        locs = []
+        for key in agent.visual_buffer.keys():
+            if key in range(max(0, self.reported_time - 10), self.reported_time):
+                victim_pos = (-1, -1)
+                other_agent_pos = (-10, -10)
+
+                val = agent.visual_buffer[key]
+                if val != []:
+                    if self.victim in list(zip(*val))[0]:
+                        for item in val:
+                            if item[0] == self.victim:
+                                victim_pos = item[1]
+                            if item[0] == other_agent:
+                                other_agent_pos = item[1]
+                    if victim_pos != (-1, -1) and other_agent_pos != (-10, -10):
+                        locs.append((victim_pos, other_agent_pos))
+        return locs
+
+
 
     def calculate_probabilities(self):
-        headings = ["agentID", "suspect", "victim", "thief", "DNAatCS", "locCS", "statement", "seenSuspectCS", "seenSuspectAlibi", ]
-        l = [headings]
+        l = []
+        r = []
         self.DNA_evidence = self.calculate_trace()
         for agent in self.model.agent_list:
             id = agent.unique_id
             sus = self.who_is_suspect(agent)
             vic = self.who_is_victim(agent)
-            thi = self.who_is_victim(agent)
+            thi = self.who_is_thief(agent)
             dna = self.DNA_at_CS(agent)
             loc = self.agent_at_crime_scene(agent)
             sta = self.agent_loc_statement(agent)
-            scs = self.eyeWitness(agent)  # the agent saw the victim and the thief at the same position in the given time range
-            sal = self.eyeWitnessAlibi(agent)
-            state = [id, sus, vic, thi, dna, loc, sta, scs, sal]
+            ret = self.seen_at_crime_scene(agent)
+            state = [self.run, id, sus, vic, thi, dna, loc, sta]
+            for row in ret:
+                r.append(row)
             l.append(state)
-        print(l)
+        return l, r
+
+
 
 
     def calculate_trace(self):
@@ -465,23 +272,48 @@ class CrimeModel():
         return 0
 
     def eyeWitness(self, agent):
-        pos_suspect, pos_victim = self.position_witness(agent)
-        if pos_suspect == pos_victim:
-            return 1
-        else:
-            return 0
+        memory_tuples = self.position_witness(agent)
+        for (pos_suspect, pos_victim, time) in memory_tuples:
+            if pos_suspect != (-3, -3) and pos_victim != (-1, -1):
+                if self.get_distance(pos_suspect, pos_victim) < 3:
+                    return 1
+        return 0
 
     def eyeWitnessAlibi(self, agent):
-        pos_suspect, pos_victim = self.position_witness(agent)
-        if pos_suspect != (-3, -3) and pos_victim != (-1, -1):
-            if self.get_distance(pos_suspect, pos_victim) > 2:
-                #print("position of thief FAR AWAY position of victim at ", key, "according to ", agent.color)
-                return 1
-
+        memory_tuples = self.position_witness(agent)
+        for (pos_suspect, pos_victim, time) in memory_tuples:
+            if pos_suspect != (-3, -3) and pos_victim != (-1, -1):
+                print("distance", time, pos_suspect, pos_victim, self.get_distance(pos_suspect, pos_victim))
+                if self.get_distance(pos_suspect, pos_victim) > 5:
+                    print("position of thief FAR AWAY position of victim at ", time, "according to ", agent.color)
+                    return 1
         return 0
+
+    def eyeWitnessBase(self, agent):
+        count = 0
+        memory_tuples = self.anyone_with_victim(agent)
+        for (pos_suspect, pos_victim, time) in memory_tuples:
+            if pos_suspect != (-3, -3) and pos_victim != (-1, -1):
+                if self.get_distance(pos_suspect, pos_victim) < 3:
+                    count += 1
+        return count
+
+    def eyeWitnessAlibiBase(self, agent):
+        count = 0
+        memory_tuples = self.anyone_with_victim(agent)
+        for (pos_suspect, pos_victim, time) in memory_tuples:
+            if pos_suspect != (-3, -3) and pos_victim != (-1, -1):
+                print("distance", time, pos_suspect, pos_victim, self.get_distance(pos_suspect, pos_victim))
+                if self.get_distance(pos_suspect, pos_victim) > 5:
+                    print("position of thief FAR AWAY position of victim at ", time, "according to ", agent.color)
+                    count += 1
+        return count
 
 
     def position_witness(self, agent):
+        pos_suspect = (-3, -3)
+        pos_victim = (-1, -1)
+        memory_tuples = []
         for key in range(max(0, self.reported_time - 10), self.reported_time):  # final recall
             pos_suspect = (-3, -3)
             pos_victim = (-1, -1)
@@ -489,15 +321,46 @@ class CrimeModel():
                 val = agent.visual_buffer[key]
                 if val != []:
                     if (self.suspect in list(zip(*val))[0]):
-                        print(f"at time {key}, agent {agent.color} saw:")
+                        print(f"at time {key}, agent {agent.color, agent.unique_id} saw: ({self.thief.color, self.victim.color})")
+                        flag = 0
                         for item in val:
                             if type(item[0]) == MoneyAgent:
                                 print(f"\t {item[0].color} at location {item[1]}")
                                 if self.suspect == item[0]:
                                     pos_suspect = item[1]
+                                    flag = 1
                                 if self.victim == item[0]:
                                     pos_victim = item[1]
-            return pos_suspect, pos_victim
+                                    flag = 1
+                        if flag == 1:
+                            pos_tuple = (pos_suspect, pos_victim, key)
+                            memory_tuples.append(pos_tuple)
+
+        return memory_tuples
+
+    def anyone_with_victim(self, agent):
+        pos_anyone = (-3, -3)
+        pos_victim = (-1, -1)
+        memory_tuples = []
+        for key in range(max(0, self.reported_time - 10), self.reported_time):  # final recall
+            pos_anyone = (-3, -3)
+            pos_victim = (-1, -1)
+            if key in agent.visual_buffer.keys():
+                val = agent.visual_buffer[key]
+                other_agents = []
+                if val != []:
+                    if (self.victim in list(zip(*val))[0]):
+                        for item in val:
+                            if type(item[0]) == MoneyAgent:
+                                if item[0] != self.thief:
+                                    other_agents.append(item[1])
+                            if self.victim == item[0]:
+                                pos_victim = item[1]
+                for agent_pos in other_agents:
+                    mem_tuple = (agent_pos, pos_victim, key)
+                    memory_tuples.append(mem_tuple)
+
+        return memory_tuples
 
 
     def agent_at_crime_scene(self, agent):
@@ -517,7 +380,7 @@ class CrimeModel():
                 else:
                     return 0
             else:
-                if p <= 0.8:
+                if p <= 0.7:
                     return 1
                 else:
                     return 0
