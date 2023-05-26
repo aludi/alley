@@ -27,15 +27,15 @@ node at_least_1_alibi_witness
 }
 potential ( suspect | locCS ) 
 {
-  data = ((0.97560976 0.02439024)(0.5555556 0.4444444)) ;
+  data = ((0.97530864 0.02469136)(0.5789474 0.4210526)) ;
 }
 potential ( DNAatCS | suspect ) 
 {
-  data = ((0.7944444 0.2055556)(0.0 1.0)) ;
+  data = ((0.6888889 0.3111111)(0.0 1.0)) ;
 }
 potential ( locCS ) 
 {
-  data = ( 0.82 0.18 );
+  data = ( 0.81 0.19 );
 }
 potential ( statement | locCS ) 
 {
@@ -43,9 +43,9 @@ potential ( statement | locCS )
 }
 potential ( at_least_1_cs_witness | suspect ) 
 {
-  data = ((0.8555556 0.1444444)(0.55 0.45)) ;
+  data = ((0.7888889 0.2111111)(0.6 0.4)) ;
 }
 potential ( at_least_1_alibi_witness | suspect ) 
 {
-  data = ((0.91666667 0.08333333)(0.95 0.05)) ;
+  data = ((0.93333333 0.06666667)(0.8 0.2)) ;
 }

@@ -1,31 +1,7 @@
 net 
 { 
 }
-node other_thief 
-{
-  states = ( "0" "1" );
-}
-node other_suspect 
-{
-  states = ( "0" "1" );
-}
-node other_cs 
-{
-  states = ( "0" "1" );
-}
-node other_alib 
-{
-  states = ( "0" "1" );
-}
 node suspect 
-{
-  states = ( "0" "1" );
-}
-node victim 
-{
-  states = ( "0" "1" );
-}
-node thief 
 {
   states = ( "0" "1" );
 }
@@ -41,43 +17,35 @@ node statement
 {
   states = ( "0" "1" );
 }
-potential ( other_thief | other_cs other_alib suspect ) 
+node at_least_1_cs_witness 
 {
-  data = ((((0.90523077 0.09476923)(0.881376 0.118624))((0.92750929 0.07249071)(1.0 0.0)))(((0.8376511 0.1623489)(1.0 0.0))((0.3888889 0.6111111)(1.0 0.0)))) ;
+  states = ( "0" "1" );
 }
-potential ( other_suspect | other_thief ) 
+node at_least_1_alibi_witness 
 {
-  data = ((1.0 0.0)(0.0 1.0)) ;
-}
-potential ( other_cs | other_alib suspect victim ) 
-{
-  data = ((((0.92716065 0.07283935)(1.0 0.0))((0.8831849 0.1168151)(0.5 0.5)))(((0.90878378 0.09121622)(0.5 0.5))((0.97802198 0.02197802)(0.5 0.5)))) ;
-}
-potential ( other_alib | suspect victim ) 
-{
-  data = (((0.96409945 0.03590055)(1.0 0.0))((0.9545 0.0455)(0.5 0.5))) ;
+  states = ( "0" "1" );
 }
 potential ( suspect ) 
 {
   data = ( 0.9 0.1 );
 }
-potential ( victim | suspect ) 
+potential ( DNAatCS | suspect ) 
 {
-  data = ((0.91611111 0.08388889)(1.0 0.0)) ;
+  data = ((0.6888889 0.3111111)(0.0 1.0)) ;
 }
-potential ( thief | suspect ) 
+potential ( locCS | suspect ) 
 {
-  data = ((1.0 0.0)(0.0 1.0)) ;
-}
-potential ( DNAatCS | other_cs other_alib suspect locCS ) 
-{
-  data = (((((0.7285946 0.2714054)(0.8228517 0.1771483))((0.0 1.0)(0.05602007 0.94397993)))(((0.92678227 0.07321773)(1.0 0.0))((0.5 0.5)(0.0 1.0))))((((0.9033264 0.0966736)(0.8418367 0.1581633))((0.5 0.5)(0.1479821 0.8520179)))(((0.92307692 0.07692308)(1.0 0.0))((0.5 0.5)(0.0 1.0))))) ;
-}
-potential ( locCS | other_cs other_alib suspect victim ) 
-{
-  data = (((((0.95162822 0.04837178)(0.09271523 0.90728477))((0.2906287 0.7093713)(0.5 0.5)))(((0.96468401 0.03531599)(0.5 0.5))((0.0 1.0)(0.5 0.5))))((((0.8307427 0.1692573)(0.5 0.5))((0.0 1.0)(0.5 0.5)))(((0.96296296 0.03703704)(0.5 0.5))((0.0 1.0)(0.5 0.5))))) ;
+  data = ((0.8777778 0.1222222)(0.2 0.8)) ;
 }
 potential ( statement | locCS ) 
 {
   data = ((1.0 0.0)(0.0 1.0)) ;
+}
+potential ( at_least_1_cs_witness | DNAatCS locCS ) 
+{
+  data = (((0.8545455 0.1454545)(0.0 1.0))((1.0 0.0)(0.3333333 0.6666667))) ;
+}
+potential ( at_least_1_alibi_witness ) 
+{
+  data = ( 0.92 0.08 );
 }

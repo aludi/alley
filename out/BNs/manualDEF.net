@@ -1,138 +1,51 @@
-net
-{
-    node_size = (80 40);
-    HR_realname_at_least_1_alibi_witness = "at_least_1_alibi_witness";
-    HR_realname_at_least_1_cs_witness = "at_least_1_cs_witness";
-    HR_realname_statement = "statement";
-    HR_realname_locCS = "locCS";
-    HR_realname_DNAatCS = "DNAatCS";
-    HR_realname_suspect = "suspect";
-    HR_DBN_Num_Slices = "5";
-    HR_Desc = "";
-    HR_OOBN_CheckConsistency = "1";
-    HR_OOBN_FitExpand = "1";
-    HR_Zoom_ZoomFactor = "100";
-    HR_Groups_GroupColors = "";
-    HR_Groups_GroupNames = "";
-    HR_Groups_UserGroupsNo = "0";
-    HR_Utility_Link = "63";
-    HR_Probabilistic_Link = "63";
-    HR_Functional_Link = "63";
-    HR_Binding_Link = "63";
-    HR_Information_Arc = "63";
-    HR_Color_Interface = "21";
-    HR_Color_Instance = "0";
-    HR_Color_DiscreteFunction = "5";
-    HR_Color_Function = "4";
-    HR_Color_Utility = "36";
-    HR_Color_Decision = "17";
-    HR_Color_ContinuousChance = "48";
-    HR_Color_DiscreteChance = "16";
-    HR_Monitor_InitSD = "2";
-    HR_Monitor_Utility_Arrange = "0";
-    HR_Monitor_Mean_Variance = "1";
-    HR_Monitor_Chance_Utility = "1";
-    HR_Monitor_InitStates = "5";
-    HR_Monitor_OpenGraph = "0";
-    HR_Monitor_GraphPrecision = "100";
-    HR_Monitor_AutoUpdGraph = "0";
-    HR_Compile_MaxMinimalSeparators = "100000";
-    HR_Compile_ApproxEpsilon = "1.0E-5";
-    HR_Compile_Approximate = "0";
-    HR_Compile_SaveToMemory = "0";
-    HR_Compile_Compress = "0";
-    HR_Compile_TriangMethod = "0";
-    HR_Propagate_AutoNormal = "1";
-    HR_Propagate_AutoSum = "1";
-    HR_Propagate_Auto = "1";
-    HR_Font_Italic = "0";
-    HR_Font_Weight = "400";
-    HR_Font_Size = "-12";
-    HR_Font_Name = "com.apple.laf.AquaFonts$DerivedUIResourceFont[family=Lucida Grande,name=Lucida Grande,style=plain,size=13]";
-    HR_Grid_GridShow = "0";
-    HR_Grid_GridSnap = "0";
-    HR_Grid_Y = "40";
-    HR_Grid_X = "40";
+net 
+{ 
 }
-
-node suspect
+node suspect 
 {
-    position = (200 140);
-    states = ("0" "1");
-    HR_LinkControlPoints = "";
-    HR_LinkGroup = "[at_least_1_alibi_witness:0][at_least_1_cs_witness:0][DNAatCS:0]";
-    HR_LinkMode = "[at_least_1_alibi_witness:0][at_least_1_cs_witness:0][DNAatCS:0]";
+  states = ( "0" "1" );
 }
-
-node DNAatCS
+node DNAatCS 
 {
-    position = (300 40);
-    states = ("0" "1");
+  states = ( "0" "1" );
 }
-
-node locCS
+node locCS 
 {
-    position = (150 240);
-    states = ("0" "1");
-    HR_LinkControlPoints = "";
-    HR_LinkGroup = "[statement:0][suspect:0]";
-    HR_LinkMode = "[statement:0][suspect:0]";
+  states = ( "0" "1" );
 }
-
-node statement
+node statement 
 {
-    position = (100 140);
-    states = ("0" "1");
+  states = ( "0" "1" );
 }
-
-node at_least_1_cs_witness
+node at_least_1_cs_witness 
 {
-    position = (200 40);
-    states = ("0" "1");
+  states = ( "0" "1" );
 }
-
-node at_least_1_alibi_witness
+node at_least_1_alibi_witness 
 {
-    position = (100 40);
-    states = ("0" "1");
+  states = ( "0" "1" );
 }
-
-potential (suspect | locCS)
+potential ( suspect | locCS ) 
 {
-    data
-     = (( 0.97561 0.0243902 )	%  locCS=0
-	( 0.555556 0.444444 ));	%  locCS=1
+  data = ((0.97530864 0.02469136)(0.5789474 0.4210526)) ;
 }
-
-potential (DNAatCS | suspect)
+potential ( DNAatCS | suspect ) 
 {
-    data
-     = (( 0.794444 0.205556 )	%  suspect=0
-	( 0 1 ));	%  suspect=1
+  data = ((0.6888889 0.3111111)(0.0 1.0)) ;
 }
-
-potential (locCS)
+potential ( locCS ) 
 {
-    data = ( 0.82 0.18 );
+  data = ( 0.81 0.19 );
 }
-
-potential (statement | locCS)
+potential ( statement | locCS ) 
 {
-    data
-     = (( 1 0 )	%  locCS=0
-	( 0 1 ));	%  locCS=1
+  data = ((1.0 0.0)(0.0 1.0)) ;
 }
-
-potential (at_least_1_cs_witness | suspect)
+potential ( at_least_1_cs_witness | suspect ) 
 {
-    data
-     = (( 0.855556 0.144444 )	%  suspect=0
-	( 0.55 0.45 ));	%  suspect=1
+  data = ((0.7888889 0.2111111)(0.6 0.4)) ;
 }
-
-potential (at_least_1_alibi_witness | suspect)
+potential ( at_least_1_alibi_witness | suspect ) 
 {
-    data
-     = (( 0.916667 0.0833333 )	%  suspect=0
-	( 0.95 0.05 ));	%  suspect=1
+  data = ((0.93333333 0.06666667)(0.8 0.2)) ;
 }

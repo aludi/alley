@@ -18,7 +18,7 @@ def export_to_df(e, params):
     df.to_csv(f'out/data/{experiment_name}.csv')
 
 
-def transform_ret(ret): # at least 1 other agent says about them that they were at CS/had alibi.
+def transform_ret(ret, params): # at least 1 other agent says about them that they were at CS/had alibi.
     ag_list = []
     run_num = 0
 
@@ -39,10 +39,10 @@ def transform_ret(ret): # at least 1 other agent says about them that they were 
             if run[6] == 1:
                 d_al[run[2]] += 1
 
-        print(run_num)
+        #print(run_num)
         for i in d_cs.keys():
-            print(f"{i} was seen by {d_cs[i]} agents at crime scene")
-            print(f"{i} was seen by {d_al[i]} agents away from crime scene")
+            #print(f"{i} was seen by {d_cs[i]} agents at crime scene")
+            #print(f"{i} was seen by {d_al[i]} agents away from crime scene")
             if d_cs[i] > 0:
                 cs_witness = 1
             else:
@@ -57,40 +57,24 @@ def transform_ret(ret): # at least 1 other agent says about them that they were 
     print(ag_list)
 
     df = pd.DataFrame(ag_list, columns=["run", "agentID", "at_least_1_cs_witness", "at_least_1_alibi_witness"])
-    df.to_csv(f'out/data/witness.csv')
+    df.to_csv(f'out/data/witness{params["experiment_name"]}.csv')
 
 
-    #exit()
 
-
-def export_ret(r):
-    df_list = []
-    for x in r:
-        d = pd.DataFrame(x, columns= ["run", "agentID", "other", "other_thief", "other_suspect", "other_cs", "other_alib"])
-        df_list.append(d)
-    df = pd.concat(df_list)
-    df.to_csv(f'out/data/r.csv')
-
-def merge_attempt():
-    df1 = pd.read_csv(f'out/data/thief.csv')
-    df2 = pd.read_csv(f'out/data/witness.csv')
+def merge_attempt(agent_type):
+    df1 = pd.read_csv(f'out/data/{agent_type}.csv')
+    df2 = pd.read_csv(f'out/data/witness{agent_type}.csv')
     r = pd.merge(df1, df2, on=["run", "agentID"], how='outer')
-    r.to_csv(f'out/data/merge.csv')
-    pass
+    r.to_csv(f'out/data/merge{agent_type}.csv')
 
 
-def perform_experiment():
-    runs = 100
+def perform_experiment(agent_type):
+    runs = 10
     for i in range(0, 1):
-        e = Experiment(run=runs, suspect="thief")
-        params = {"experiment_name": "thief", "runs":runs}
+        e = Experiment(run=runs, suspect=agent_type)
+        params = {"experiment_name": agent_type, "runs":runs}
         export_to_df(e,params)
-        export_ret(e.r)
-        transform_ret(e.r)
-        '''e1 = Experiment(run=runs, suspect="innocent")
-        params = {"experiment_name": "innocent", "runs":runs}
-        export_to_df(e1, params)'''
-
+        transform_ret(e.r, params)
         print(e.headings)
         e.print_table()
 
@@ -124,22 +108,6 @@ def calculate_Odds(df, evidence, hypothesis):
     print(f"change {hypothesis} given {evidence}: prior {H} to posterior {odds/(1+odds)} = {(odds/(1+odds)) - H}")
     return odds
 
-def change(df, evidence, hypothesis):
-    H = len(df[df[hypothesis] == 1])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
-    notH = len(df[df[hypothesis] == 0])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
-    EandH = len(df[(df[hypothesis] == 1) & (df[evidence] == 1)])
-    EandnotH = len(df[(df[hypothesis] == 0) & (df[evidence] == 1)])
-    P_eh = EandH / H
-    P_en = EandnotH / notH
-    if P_en == 0:
-        P_en = 0.001
-    LR = P_eh / P_en
-    odds = LR * (H/notH)
-    #print(f"prior {hypothesis} == {H}, complement == {notH}")
-    #print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
-    #print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
-    print(f"change {hypothesis} given {evidence}: prior {H} to posterior {odds/(1+odds)} = {(odds/(1+odds)) - H}")
-    return f"change {hypothesis} given {evidence}: prior {H} to posterior {odds/(1+odds)} = {(odds/(1+odds)) - H}"
 
 '''def posterior(df, evidence, hypothesis):
     x = calculate_Odds(df, evidence, hypothesis)
@@ -169,62 +137,56 @@ def calculate_all_odds(agent_type):
     alibi = calculate_Odds(df, "other_alib", "other_suspect")
     return dna, statement, witness, alibi
 
-def calculate_all_change(agent_type):
-    df = pd.read_csv(f'out/data/{agent_type}.csv')
-    dna = change(df, "DNAatCS", "suspect")
-    statement = change(df, "statement", "locCS")
-    df = pd.read_csv(f'out/data/r.csv') # given that the witness saw the victim
-    witness = change(df, "other_cs", "other_suspect")
-    alibi = change(df, "other_alib", "other_suspect")
-    return dna, statement, witness, alibi
+def change(df, evidence, hypothesis):
+    H = len(df[df[hypothesis] == 1])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    notH = len(df[df[hypothesis] == 0])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    EandH = len(df[(df[hypothesis] == 1) & (df[evidence] == 1)])
+    EandnotH = len(df[(df[hypothesis] == 0) & (df[evidence] == 1)])
+    P_eh = EandH / H
+    P_en = EandnotH / notH
+    if P_en == 0:
+        P_en = 0.001
+    LR = P_eh / P_en
+    odds = LR * (H/notH)
+    #print(f"prior {hypothesis} == {H}, complement == {notH}")
+    #print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
+    #print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
+    p = odds/(1+odds)
+    print(f"change {hypothesis} given {evidence}: prior {H} to posterior {p} = {p - H}")
+    return H, p
 
-def calculate_all_change_merge(agent_type):
-    df = pd.read_csv(f'out/data/merge.csv')
+
+def calculate_change(agent_type, run):
+    df = pd.read_csv(f'out/data/merge{agent_type}.csv')
     l = [("DNAatCS", "suspect"), ("statement", "locCS"),
          ("at_least_1_cs_witness", "suspect"), ("at_least_1_alibi_witness", "suspect")]
-
+    st = []
     for (ev, hyp) in l:
-        change(df,ev, hyp)
-    print("end")
-    dna = change(df, "DNAatCS", "suspect")
-    statement = change(df, "statement", "locCS")
-    witness = change(df, "at_least_1_cs_witness", "suspect")
-    alibi = change(df, "at_least_1_alibi_witness", "suspect")
-    return dna, statement, witness, alibi
-
-'''
-Problem: how to transform the data in r.csv 
-such that we get frequency distributions related to the stae space?
-'''
-
+        H, p = change(df, ev, hyp)
+        c = p-H
+        x = [run, hyp, ev, H, p, c] # f"change {hyp} given {ev}: prior {H} to posterior {p} = {c}
+        st.append(x)
+    return st
 
 l = []
-for i in range(0, 1):
-    perform_experiment()
-    merge_attempt()
+l_i = []
+for i in range(0, 2):
+    perform_experiment("thief")
+    merge_attempt("thief")
+    t = calculate_change("thief", i)
+    l = l + t
 
-    #d, s, w, a = calculate_LRs("thief")
-    #do, so, wo, ao = calculate_all_odds("thief")
-    #do, so, wo, ao = calculate_all_change("thief")
-    #do, so, wo, ao = calculate_all_change_merge("thief")
+    perform_experiment("innocent")
+    merge_attempt("innocent")
+    t = calculate_change("innocent", i)
+    l_i = l_i + t
 
-    l.append([calculate_all_change_merge("thief")])
+df = pd.DataFrame(l, columns=["run", "hyp", "ev", "H", "p", "c"])
+df.to_csv("out/data/outputthief.csv")
 
-#calculate_prior(f'out/data/thief.csv', "suspect")
-#posterior(f'out/data/thief.csv', "DNAatCS", "suspect")
-
-for lis in l:
-    for do, so, wo, ao in lis:
-        print(do)
-        print(so)
-        print(wo)
-        print(ao)
-        print()
-
-    print()
-    print()
-    #print(f"LR DNA {d}, LR stat {s} LR witness {w}, LR alibi {a}")
-    #print(f"odds DNA {do}, odds stat {so} odds witness {wo}, odds alibi {ao}")
+df = pd.DataFrame(l_i, columns=["run", "hyp", "ev", "H", "p", "c"])
+df.to_csv("out/data/outputinnocent.csv")
 
 os.system("Rscript generatingNetworkAlleys.R")
+
 
