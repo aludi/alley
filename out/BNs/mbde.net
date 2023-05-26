@@ -1,0 +1,83 @@
+net 
+{ 
+}
+node other_thief 
+{
+  states = ( "0" "1" );
+}
+node other_suspect 
+{
+  states = ( "0" "1" );
+}
+node other_cs 
+{
+  states = ( "0" "1" );
+}
+node other_alib 
+{
+  states = ( "0" "1" );
+}
+node suspect 
+{
+  states = ( "0" "1" );
+}
+node victim 
+{
+  states = ( "0" "1" );
+}
+node thief 
+{
+  states = ( "0" "1" );
+}
+node DNAatCS 
+{
+  states = ( "0" "1" );
+}
+node locCS 
+{
+  states = ( "0" "1" );
+}
+node statement 
+{
+  states = ( "0" "1" );
+}
+potential ( other_thief ) 
+{
+  data = ( 0.9 0.1 );
+}
+potential ( other_suspect | other_thief ) 
+{
+  data = ((1.0 0.0)(0.0 1.0)) ;
+}
+potential ( other_cs | victim locCS ) 
+{
+  data = (((0.94810127 0.05189873)(0.8307692 0.1692308))((1.0 0.0)(1.0 0.0))) ;
+}
+potential ( other_alib | other_thief other_suspect ) 
+{
+  data = (((0.96555556 0.03444444)(0.5 0.5))((0.5 0.5)(1.0 0.0))) ;
+}
+potential ( suspect | victim ) 
+{
+  data = ((0.8913043 0.1086957)(1.0 0.0)) ;
+}
+potential ( victim | other_alib ) 
+{
+  data = ((0.91744066 0.08255934)(1.0 0.0)) ;
+}
+potential ( thief | suspect victim ) 
+{
+  data = (((1.0 0.0)(1.0 0.0))((0.0 1.0)(0.5 0.5))) ;
+}
+potential ( DNAatCS | suspect thief ) 
+{
+  data = (((0.7888889 0.2111111)(0.5 0.5))((0.5 0.5)(0.0 1.0))) ;
+}
+potential ( locCS | suspect victim DNAatCS ) 
+{
+  data = ((((0.92307692 0.07692308)(1.0 0.0))((0.1666667 0.8333333)(0.0 1.0)))(((0.5 0.5)(0.2 0.8))((0.5 0.5)(0.5 0.5)))) ;
+}
+potential ( statement | locCS ) 
+{
+  data = ((1.0 0.0)(0.0 1.0)) ;
+}

@@ -18,14 +18,22 @@ def export_to_df(e, params):
 def export_ret(r):
     df_list = []
     for x in r:
-        d = pd.DataFrame(x, columns= ["own", "other", "thief", "suspect", "cs", "alib"])
+        d = pd.DataFrame(x, columns= ["run", "agentID", "other", "other_thief", "other_suspect", "other_cs", "other_alib"])
         df_list.append(d)
     df = pd.concat(df_list)
     df.to_csv(f'out/data/r.csv')
 
+def merge_attempt():
+    df1 = pd.read_csv(f'out/data/thief.csv')
+    df2 = pd.read_csv(f'out/data/r.csv')
+    r = pd.merge(df2, df1, on=["run", "agentID"], how='outer')
+    r.to_csv(f'out/data/merge.csv')
+    pass
+
+
 
 def perform_experiment():
-    runs = 10
+    runs = 200
     for i in range(0, 1):
         e = Experiment(run=runs, suspect="thief")
         params = {"experiment_name": "thief", "runs":runs}
@@ -59,7 +67,7 @@ def calculate_Odds(df, evidence, hypothesis):
     P_eh = EandH / H
     P_en = EandnotH / notH
     if P_en == 0:
-        P_en = 0.00000001
+        P_en = 0.001
     LR = P_eh / P_en
     odds = LR * (H/notH)
     #print(f"prior {hypothesis} == {H}, complement == {notH}")
@@ -76,7 +84,7 @@ def change(df, evidence, hypothesis):
     P_eh = EandH / H
     P_en = EandnotH / notH
     if P_en == 0:
-        P_en = 0.00000001
+        P_en = 0.001
     LR = P_eh / P_en
     odds = LR * (H/notH)
     #print(f"prior {hypothesis} == {H}, complement == {notH}")
@@ -100,8 +108,8 @@ def calculate_LRs(agent_type):
     LR_dna = calculate_LR(df, "DNAatCS", "suspect")
     LR_statement = calculate_LR(df, "statement", "locCS")
     df = pd.read_csv(f'out/data/r.csv')
-    LR_witness= calculate_LR(df, "cs", "suspect")
-    LR_alibi = calculate_LR(df, "alib", "suspect")
+    LR_witness= calculate_LR(df, "other_cs", "other_suspect")
+    LR_alibi = calculate_LR(df, "other_alib", "other_suspect")
     return LR_dna, LR_statement, LR_witness, LR_alibi
 
 def calculate_all_odds(agent_type):
@@ -109,36 +117,57 @@ def calculate_all_odds(agent_type):
     dna = calculate_Odds(df, "DNAatCS", "suspect")
     statement = calculate_Odds(df, "statement", "locCS")
     df = pd.read_csv(f'out/data/r.csv')
-    witness= calculate_Odds(df, "cs", "suspect")
-    alibi = calculate_Odds(df, "alib", "suspect")
+    witness= calculate_Odds(df, "other_cs", "other_suspect")
+    alibi = calculate_Odds(df, "other_alib", "other_suspect")
     return dna, statement, witness, alibi
 
 def calculate_all_change(agent_type):
     df = pd.read_csv(f'out/data/{agent_type}.csv')
     dna = change(df, "DNAatCS", "suspect")
     statement = change(df, "statement", "locCS")
-    df = pd.read_csv(f'out/data/r.csv')
-    witness = change(df, "cs", "suspect")
-    alibi = change(df, "alib", "suspect")
+    df = pd.read_csv(f'out/data/r.csv') # given that the witness saw the victim
+    witness = change(df, "other_cs", "other_suspect")
+    alibi = change(df, "other_alib", "other_suspect")
     return dna, statement, witness, alibi
+
+def calculate_all_change_merge(agent_type):
+    df = pd.read_csv(f'out/data/merge.csv')
+    dna = change(df, "DNAatCS", "suspect")
+    statement = change(df, "statement", "locCS")
+    witness = change(df, "other_cs", "other_suspect")
+    alibi = change(df, "other_alib", "other_suspect")
+    return dna, statement, witness, alibi
+
+'''
+Problem: how to transform the data in r.csv 
+such that we get frequency distributions related to the stae space?
+'''
 
 
 l = []
-for i in range(0, 5):
+for i in range(0, 1):
     perform_experiment()
+    merge_attempt()
     #d, s, w, a = calculate_LRs("thief")
     #do, so, wo, ao = calculate_all_odds("thief")
-    do, so, wo, ao = calculate_all_change("thief")
-    l.append((do, so, wo, ao))
+    #do, so, wo, ao = calculate_all_change("thief")
+    #do, so, wo, ao = calculate_all_change_merge("thief")
+
+    l.append([calculate_all_change("thief"), calculate_all_change_merge("thief")])
 
 #calculate_prior(f'out/data/thief.csv', "suspect")
 #posterior(f'out/data/thief.csv', "DNAatCS", "suspect")
 
-for do, so, wo, ao in l:
-    print(do)
-    print(so)
-    print(wo)
-    print(ao)
+for lis in l:
+    for do, so, wo, ao in lis:
+        print(do)
+        print(so)
+        print(wo)
+        print(ao)
+        print()
+
+    print()
+    print()
     #print(f"LR DNA {d}, LR stat {s} LR witness {w}, LR alibi {a}")
     #print(f"odds DNA {do}, odds stat {so} odds witness {wo}, odds alibi {ao}")
 

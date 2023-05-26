@@ -1,0 +1,148 @@
+Fri May 26 21:05:28 2023
+
+
+Moral links:
+
+
+
+Triangulating prime component with 1 member:
+    thief
+This component is a clique of cost 2
+
+Triangulating prime component with 1 member:
+    victim
+This component is a clique of cost 2
+
+Triangulating prime component with 2 members:
+    suspect, DNAatCS
+This component is a clique of cost 4
+
+Triangulating prime component with 2 members:
+    other_alib, suspect
+This component is a clique of cost 4
+
+Triangulating prime component with 2 members:
+    other_cs, suspect
+This component is a clique of cost 4
+
+Triangulating prime component with 2 members:
+    suspect, locCS
+This component is a clique of cost 4
+
+Triangulating prime component with 2 members:
+    locCS, statement
+This component is a clique of cost 4
+
+
+Total cost of triangulation for all prime components is 24
+
+
+Elimination sequence:
+
+    DNAatCS
+    other_alib
+    other_cs
+    suspect
+    statement
+    locCS
+    thief
+    victim
+
+
+Cliques:
+
+Clique 7, 2 members, table size = 4:
+    locCS, statement
+
+Clique 6, 2 members, table size = 4:
+    locCS, suspect
+
+Clique 5, 2 members, table size = 4:
+    suspect, other_cs
+
+Clique 4, 2 members, table size = 4:
+    suspect, other_alib
+
+Clique 3, 2 members, table size = 4:
+    suspect, DNAatCS
+
+Clique 2, 1 member, table size = 2:
+    victim
+
+Clique 1, 1 member, table size = 2:
+    thief
+
+Total clique table size: 24
+
+
+The junction forest:
+
+Creating junction tree with clique 7 as root ...
+
+Cliques 6 and 7 linked, separator has 1 member and table size = 2:
+    locCS
+
+Cliques 5 and 6 linked, separator has 1 member and table size = 2:
+    suspect
+
+Cliques 4 and 6 linked, separator has 1 member and table size = 2:
+    suspect
+
+Cliques 3 and 6 linked, separator has 1 member and table size = 2:
+    suspect
+
+Creating junction tree with clique 2 as root ...
+
+Creating junction tree with clique 1 as root ...
+
+
+Assignment of potentials to cliques:
+
+    Node other_cs assigned to clique 5
+    Node other_alib assigned to clique 4
+    Node suspect assigned to clique 6
+    Node victim assigned to clique 2
+    Node thief assigned to clique 1
+    Node DNAatCS assigned to clique 3
+    Node locCS assigned to clique 7
+    Node statement assigned to clique 7
+
+
+Checking conditional probability potentials:
+
+    No errors found
+
+
+Beliefs for chance nodes:
+
+    other_cs:
+	0          0.9396
+	1          0.0604
+
+    other_alib:
+	0          0.97005
+	1          0.02995
+
+    suspect:
+	0          0.9
+	1          0.1
+
+    victim:
+	0          0.9255
+	1          0.0745
+
+    thief:
+	0          0.9
+	1          0.1
+
+    DNAatCS:
+	0          0.6735
+	1          0.3265
+
+    locCS:
+	0          0.8195
+	1          0.1805
+
+    statement:
+	0          0.8195
+	1          0.1805

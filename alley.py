@@ -187,7 +187,7 @@ class CrimeModel():
             else:
                 y = 0
             close, alibi = self.check_distance_memory(agent, other_agent)
-            l.append([agent.unique_id, other_agent.unique_id, x, y, close, alibi])
+            l.append([self.run, agent.unique_id, other_agent.unique_id, x, y, close, alibi])
         return l
 
     def check_distance_memory(self, agent, other):
