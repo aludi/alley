@@ -372,6 +372,12 @@ class CrimeModel():
             return 0
 
     def agent_loc_statement(self, agent):
+        if self.agent_at_crime_scene(agent) == 1:
+            return 1
+        else:
+            return 0
+        '''
+        
         p = random.random()
         if self.agent_at_crime_scene(agent) == 1:
             if agent.thief == True:
@@ -394,7 +400,7 @@ class CrimeModel():
                 if p <= 1:
                     return 0
                 else:
-                    return 1    #agent lies
+                    return 1    #agent lies'''
 
 
 

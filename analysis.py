@@ -25,7 +25,7 @@ def export_ret(r):
 
 
 def perform_experiment():
-    runs = 50
+    runs = 10
     for i in range(0, 1):
         e = Experiment(run=runs, suspect="thief")
         params = {"experiment_name": "thief", "runs":runs}
@@ -37,47 +37,63 @@ def perform_experiment():
 
         print(e.headings)
         e.print_table()
-        #e1.print_table()
-
-def calculate_LRs_witness():
-    df = pd.read_csv(f'out/data/r.csv')
-    p_thief = len(df[df["suspect"] == 1])/(len(df[df["suspect"] == 1]) + len(df[df["suspect"] == 0]))
-    p_not_thief = len(df[df["suspect"] == 0])/(len(df[df["suspect"] == 1]) + len(df[df["suspect"] == 0]))
-
-    print(p_thief, p_not_thief)
-
-    saw_x_and_x_thief = len(df[(df.cs == 1) & (df.suspect == 1)])
-    saw_x_and_x_not_thief = len(df[(df.cs == 1) & (df.suspect == 0)])
-
-    thief = len(df[df["suspect"] == 1])
-    not_thief = len(df[df["suspect"] == 0])
-
-    print(saw_x_and_x_thief, saw_x_and_x_not_thief)
-    print(saw_x_and_x_thief/thief, saw_x_and_x_not_thief/not_thief)
-    print(f"LR witness : {(saw_x_and_x_thief/thief)/(saw_x_and_x_not_thief/not_thief)}")
-
-    alibi_x_and_x_thief = len(df[(df.alib == 1) & (df.thief == 1)])
-    alibi_x_and_x_not_thief = len(df[(df.alib == 1) & (df.thief == 0)])
-
-    print(alibi_x_and_x_thief, saw_x_and_x_not_thief)
-    print(alibi_x_and_x_not_thief / thief, saw_x_and_x_not_thief / not_thief)
-    print(f"LR alibi: {(alibi_x_and_x_thief / thief) / (alibi_x_and_x_not_thief / not_thief)}")
-
-    LRwit = (saw_x_and_x_thief/thief)/(saw_x_and_x_not_thief/not_thief)
-    LRal = (alibi_x_and_x_thief / thief) / (alibi_x_and_x_not_thief / not_thief)
-    return LRwit, LRal
-
 
 
 def calculate_LR(df, evidence, hypothesis):
     H = len(df[df[hypothesis] == 1])
     notH = len(df[df[hypothesis] == 0])
     EandH = len(df[(df[hypothesis] == 1) & (df[evidence] == 1)])
-    EandnotH = len(df[(df[hypothesis] == 0) & (df[evidence] == 0)])
+    EandnotH = len(df[(df[hypothesis] == 0) & (df[evidence] == 1)])
     P_eh = EandH / H
     P_en = EandnotH / notH
+    if P_en == 0:
+        P_en = 0.00000001
     LR = P_eh/P_en
     return LR
+
+def calculate_Odds(df, evidence, hypothesis):
+    H = len(df[df[hypothesis] == 1])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    notH = len(df[df[hypothesis] == 0])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    EandH = len(df[(df[hypothesis] == 1) & (df[evidence] == 1)])
+    EandnotH = len(df[(df[hypothesis] == 0) & (df[evidence] == 1)])
+    P_eh = EandH / H
+    P_en = EandnotH / notH
+    if P_en == 0:
+        P_en = 0.00000001
+    LR = P_eh / P_en
+    odds = LR * (H/notH)
+    #print(f"prior {hypothesis} == {H}, complement == {notH}")
+    #print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
+    #print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
+    print(f"change {hypothesis} given {evidence}: prior {H} to posterior {odds/(1+odds)} = {(odds/(1+odds)) - H}")
+    return odds
+
+def change(df, evidence, hypothesis):
+    H = len(df[df[hypothesis] == 1])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    notH = len(df[df[hypothesis] == 0])/(len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    EandH = len(df[(df[hypothesis] == 1) & (df[evidence] == 1)])
+    EandnotH = len(df[(df[hypothesis] == 0) & (df[evidence] == 1)])
+    P_eh = EandH / H
+    P_en = EandnotH / notH
+    if P_en == 0:
+        P_en = 0.00000001
+    LR = P_eh / P_en
+    odds = LR * (H/notH)
+    #print(f"prior {hypothesis} == {H}, complement == {notH}")
+    #print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
+    #print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
+    print(f"change {hypothesis} given {evidence}: prior {H} to posterior {odds/(1+odds)} = {(odds/(1+odds)) - H}")
+    return f"change {hypothesis} given {evidence}: prior {H} to posterior {odds/(1+odds)} = {(odds/(1+odds)) - H}"
+
+'''def posterior(df, evidence, hypothesis):
+    x = calculate_Odds(df, evidence, hypothesis)
+    print(f"posterior {hypothesis} given {evidence} == {x/(1+x)}")
+    return x/(1+x)
+
+def calculate_prior(df, hypothesis):
+    H = len(df[df[hypothesis] == 1]) / (len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    notH = len(df[df[hypothesis] == 0]) / (len(df[df[hypothesis] == 1]) + len(df[df[hypothesis] == 0]))
+    print(f"prior {hypothesis} == {H}, complement == {notH}")'''
 
 def calculate_LRs(agent_type):
     df = pd.read_csv(f'out/data/{agent_type}.csv')
@@ -88,45 +104,44 @@ def calculate_LRs(agent_type):
     LR_alibi = calculate_LR(df, "alib", "suspect")
     return LR_dna, LR_statement, LR_witness, LR_alibi
 
-
-
-def calculate_LRs_old(agent_type):
+def calculate_all_odds(agent_type):
     df = pd.read_csv(f'out/data/{agent_type}.csv')
+    dna = calculate_Odds(df, "DNAatCS", "suspect")
+    statement = calculate_Odds(df, "statement", "locCS")
+    df = pd.read_csv(f'out/data/r.csv')
+    witness= calculate_Odds(df, "cs", "suspect")
+    alibi = calculate_Odds(df, "alib", "suspect")
+    return dna, statement, witness, alibi
 
-    locCS = len(df[df["suspect"] == 1])
-    NotlocCS = len(df[df["suspect"] == 0])
-    stat_locCS = len(df[(df["suspect"] == 1) & (df["DNAatCS"] == 1)])
-    stat_NotlocCS = len(df[(df["suspect"] == 0) & (df["DNAatCS"] == 0)])
-    P_eh = stat_locCS / locCS
-    P_en = stat_NotlocCS / NotlocCS
-    print(locCS, NotlocCS, stat_locCS, stat_NotlocCS, P_eh, P_en)
-    print(f"LR dna {P_eh / P_en}")
-    d = P_eh / P_en
-
-
-    locCS = len(df[df["locCS"] == 1])
-    NotlocCS = len(df[df["locCS"] == 0])
-    stat_locCS = len(df[(df.locCS == 1) & (df.statement == 1)])
-    stat_NotlocCS = len(df[(df.locCS == 0) & (df.statement == 0)])
-    P_eh = stat_locCS/locCS
-    P_en = stat_NotlocCS/NotlocCS
-    print(locCS, NotlocCS, stat_locCS, stat_NotlocCS, P_eh, P_en)
-    print(f"LR statement {P_eh/P_en}")
-    s = P_eh/P_en
-
-    return d, s
-
-
+def calculate_all_change(agent_type):
+    df = pd.read_csv(f'out/data/{agent_type}.csv')
+    dna = change(df, "DNAatCS", "suspect")
+    statement = change(df, "statement", "locCS")
+    df = pd.read_csv(f'out/data/r.csv')
+    witness = change(df, "cs", "suspect")
+    alibi = change(df, "alib", "suspect")
+    return dna, statement, witness, alibi
 
 
 l = []
 for i in range(0, 5):
-    #perform_experiment()
-    #w, a = calculate_LRs_witness()
-    d, s, w, a = calculate_LRs("thief")
-    l.append((d, s, w, a))
+    perform_experiment()
+    #d, s, w, a = calculate_LRs("thief")
+    #do, so, wo, ao = calculate_all_odds("thief")
+    do, so, wo, ao = calculate_all_change("thief")
 
-for d, s, w, a in l:
-    print(f"LR DNA {d}, LR stat {s} LR witness {w}, LR alibi {a}")
+    l.append((do, so, wo, ao))
+
+#calculate_prior(f'out/data/thief.csv', "suspect")
+#posterior(f'out/data/thief.csv', "DNAatCS", "suspect")
+
+for do, so, wo, ao in l:
+    print(do)
+    print(so)
+    print(wo)
+    print(ao)
+    #print(f"LR DNA {d}, LR stat {s} LR witness {w}, LR alibi {a}")
+    #print(f"odds DNA {do}, odds stat {so} odds witness {wo}, odds alibi {ao}")
+
 #calculate_LRs("thief")
 #calculate_LRs("innocent")
