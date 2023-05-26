@@ -133,14 +133,14 @@ class Experiment():
 
         num_agents = 10
 
-
-
         for i in range(0, run):
             model = MoneyModel(N=num_agents, width=20, height=20)
             for j in range(500):
                 model.step()
                 if model.reported == True:
                     break
+            model.crime_model.calculate_probabilities()
+            exit()
             model.crime_model.select_trace()
             model.crime_model.select_eye_witness()
             model.crime_model.calculate_alibi()
@@ -388,6 +388,7 @@ class CrimeModel():
             self.random = random.choice(self.model.agent_list)
         #print(self.random.color)
         # victim
+        self.suspect = self.thief
         self.victim = 0
         self.total_witness_inn = 0
         self.total_witness_guilt = 0
@@ -400,6 +401,139 @@ class CrimeModel():
 
     def set_reported_time(self, t):
         self.reported_time = t
+
+    def who_is_suspect(self, agent):
+        if agent == self.random or agent == self.thief:
+            return 1
+        else:
+            return 0
+    def who_is_victim(self, agent):
+        if agent == self.victim:
+            return 1
+        else:
+            return 0
+
+    def who_is_thief(self, agent):
+        if agent == self.thief:
+            return 1
+        else:
+            return 0
+
+
+    def calculate_probabilities(self):
+        headings = ["agentID", "suspect", "victim", "thief", "DNAatCS", "locCS", "statement", "seenSuspectCS", "seenSuspectAlibi", ]
+        l = [headings]
+        self.DNA_evidence = self.calculate_trace()
+        for agent in self.model.agent_list:
+            id = agent.unique_id
+            sus = self.who_is_suspect(agent)
+            vic = self.who_is_victim(agent)
+            thi = self.who_is_victim(agent)
+            dna = self.DNA_at_CS(agent)
+            loc = self.agent_at_crime_scene(agent)
+            sta = self.agent_loc_statement(agent)
+            scs = self.eyeWitness(agent)  # the agent saw the victim and the thief at the same position in the given time range
+            sal = self.eyeWitnessAlibi(agent)
+            state = [id, sus, vic, thi, dna, loc, sta, scs, sal]
+            l.append(state)
+        print(l)
+
+
+    def calculate_trace(self):
+        collect_DNA_other = []
+        collect_DNA_thief = []
+        for i in range(5, 10):
+            for j in range(3, 16):
+                for agent in self.model.grid[i][j]:
+                    if type(agent) == DNA:
+                        if agent.owner.thief == True:
+                            collect_DNA_thief.append(agent)
+                        else:
+                            collect_DNA_other.append(agent)
+        return [collect_DNA_thief, collect_DNA_other]
+
+    def DNA_at_CS(self, agent):
+        evidence_thief = self.DNA_evidence[0]
+        evidence_other = self.DNA_evidence[1]
+        total_evidence = evidence_other + evidence_thief
+        if total_evidence == []:
+            return 0
+
+        for trace in total_evidence:
+            if trace.owner == agent:
+                return 1
+        return 0
+
+    def eyeWitness(self, agent):
+        pos_suspect, pos_victim = self.position_witness(agent)
+        if pos_suspect == pos_victim:
+            return 1
+        else:
+            return 0
+
+    def eyeWitnessAlibi(self, agent):
+        pos_suspect, pos_victim = self.position_witness(agent)
+        if pos_suspect != (-3, -3) and pos_victim != (-1, -1):
+            if self.get_distance(pos_suspect, pos_victim) > 2:
+                #print("position of thief FAR AWAY position of victim at ", key, "according to ", agent.color)
+                return 1
+
+        return 0
+
+
+    def position_witness(self, agent):
+        for key in range(max(0, self.reported_time - 10), self.reported_time):  # final recall
+            pos_suspect = (-3, -3)
+            pos_victim = (-1, -1)
+            if key in agent.visual_buffer.keys():
+                val = agent.visual_buffer[key]
+                if val != []:
+                    if (self.suspect in list(zip(*val))[0]):
+                        print(f"at time {key}, agent {agent.color} saw:")
+                        for item in val:
+                            if type(item[0]) == MoneyAgent:
+                                print(f"\t {item[0].color} at location {item[1]}")
+                                if self.suspect == item[0]:
+                                    pos_suspect = item[1]
+                                if self.victim == item[0]:
+                                    pos_victim = item[1]
+            return pos_suspect, pos_victim
+
+
+    def agent_at_crime_scene(self, agent):
+        steal_location = self.model.steal_location
+        agent_position_steal = agent.position_memory[self.model.steal_time]
+        if steal_location == agent_position_steal:
+            return 1
+        else:
+            return 0
+
+    def agent_loc_statement(self, agent):
+        p = random.random()
+        if self.agent_at_crime_scene(agent) == 1:
+            if agent.thief == True:
+                if p <= 0.2:
+                    return 1
+                else:
+                    return 0
+            else:
+                if p <= 0.8:
+                    return 1
+                else:
+                    return 0
+        else:   # agent was not at crime scene
+            if agent.thief == True:
+                if p <= 0.99:
+                    return 0    # agent tells you that they were not at crime scene (true)
+                else:
+                    return 1    #agent lies
+            else:
+                if p <= 1:
+                    return 0
+                else:
+                    return 1    #agent lies
+
+
 
     def personal_testimony(self):
         steal_location = self.model.steal_location
