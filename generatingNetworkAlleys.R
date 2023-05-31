@@ -6,7 +6,7 @@ library(dplyr)
 library(readr)
 
 
-merge1 <- read_csv("out/data/merge.csv", col_types = 
+merge1 <- read_csv("out/data/mergethief.csv", col_types = 
   cols(
     X1 = col_skip(),
     `Unnamed: 0_x` = col_skip(),
@@ -22,7 +22,11 @@ merge1 <- read_csv("out/data/merge.csv", col_types =
     runs = col_skip(),
     `Unnamed: 0_y` = col_skip(),
     at_least_1_cs_witness = col_double(),
-    at_least_1_alibi_witness = col_double()
+    at_least_1_alibi_witness = col_double(),
+    at_least_2_cs_witness = col_double(),
+    at_least_2_alibi_witness = col_double(),
+    at_least_3_cs_witness = col_double(),
+    at_least_3_alibi_witness = col_double()
   ))
 
 print("df imported")

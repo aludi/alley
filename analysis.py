@@ -21,6 +21,15 @@ def export_to_df(e, params):
 def transform_ret(ret, params): # at least 1 other agent says about them that they were at CS/had alibi.
     ag_list = []
     run_num = 0
+    witness_threshold = 0
+    
+    #df = pd.DataFrame(ag_list, columns=["run", "agentID"])
+    
+    header_columns = ["run", "agentID"]
+    for i in range(1, 4):
+        header_columns.append(f"at_least_{i}_cs_witness")
+        header_columns.append(f"at_least_{i}_alibi_witness")
+
 
     for x in ret:#per run
         d_cs = {}
@@ -40,23 +49,30 @@ def transform_ret(ret, params): # at least 1 other agent says about them that th
                 d_al[run[2]] += 1
 
         #print(run_num)
+        
         for i in d_cs.keys():
+            l_list = [run_num, i]
             #print(f"{i} was seen by {d_cs[i]} agents at crime scene")
             #print(f"{i} was seen by {d_al[i]} agents away from crime scene")
-            if d_cs[i] > 0:
-                cs_witness = 1
-            else:
-                cs_witness = 0
-            if d_al[i] > 1:
-                alibi_witness = 1
-            else:
-                alibi_witness = 0
-
-            ag_list.append([run_num, i, cs_witness, alibi_witness])
-
+            for witness_threshold in range(1, 4):
+                if d_cs[i] >= witness_threshold:
+                    cs_witness = 1
+                else:
+                    cs_witness = 0
+                if d_al[i] >= witness_threshold:
+                    alibi_witness = 1
+                else:
+                    alibi_witness = 0
+                l_list.append(cs_witness)
+                l_list.append(alibi_witness)
+                print("witnesses")
+                print(l_list)
+    
+            ag_list.append(l_list)
+    
     print(ag_list)
 
-    df = pd.DataFrame(ag_list, columns=["run", "agentID", "at_least_1_cs_witness", "at_least_1_alibi_witness"])
+    df = pd.DataFrame(ag_list, columns=header_columns)
     df.to_csv(f'out/data/witness{params["experiment_name"]}.csv')
 
 
@@ -158,8 +174,11 @@ def change(df, evidence, hypothesis):
 
 def calculate_change(agent_type, run):
     df = pd.read_csv(f'out/data/merge{agent_type}.csv')
-    l = [("DNAatCS", "suspect"), ("statement", "locCS"),
-         ("at_least_1_cs_witness", "suspect"), ("at_least_1_alibi_witness", "suspect")]
+    l = [("DNAatCS", "suspect"), ("statement", "locCS")]
+    for i in range(1, 4):   # witness_threshold
+         l.append((f"at_least_{i}_cs_witness", "suspect"))
+         l.append((f"at_least_{i}_alibi_witness", "suspect"))
+
     st = []
     for (ev, hyp) in l:
         H, p = change(df, ev, hyp)
