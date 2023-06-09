@@ -297,6 +297,7 @@ class MoneyAgent(mesa.Agent):
         self.monitor()
         self.visual_buffer[self.model.schedule.time] = []
         self.vision()
+
         if self.thief == True:
             self.check_location()
             self.targeting()

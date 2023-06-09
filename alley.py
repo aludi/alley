@@ -93,6 +93,7 @@ class MoneyModel(mesa.Model):
                 self.crime_model.select_eye_witness()
             self.running = False'''
 
+
 class Experiment():
     '''odds = p/(1-p)
     odds*(1-p) = p
@@ -114,6 +115,7 @@ class Experiment():
                 if model.reported == True:
                     break
             states, r = model.crime_model.calculate_probabilities()
+            model.crime_model.calculate_ecs()
             self.total_states.append(states)
             self.r.append(r)
 
@@ -190,6 +192,77 @@ class CrimeModel():
             l.append([self.run, agent.unique_id, other_agent.unique_id, x, y, close, alibi])
         return l
 
+    #model.crime_model.calculate_ecs()
+    def calculate_ecs(self):
+        print("CALCULATE PRIOR")
+        cs = self.model.steal_location
+        #print(cs)
+        ct = self.reported_time
+        #print(ct)
+        list_locs_times = []
+        for agent in self.model.agent_list:
+            # new #
+            list_locs_times.append(self.seen_ever(agent)) # self.run, agent.unique_id, other_agent.unique_id, x, y, q
+        #print("\t locations suspect")
+        #print(list_locs_times)
+        print("crime at : ", cs, ct)
+        loc_tuples = []
+        for a in list_locs_times:
+            if len(a) > 0:
+                for (a1, a2, a3) in a:
+                    (x, y) = a3
+                    t = a1
+                    loc_tuples.append((x, y, t))
+        #print("LOC TUPLES")
+        #print(loc_tuples)
+        dist = {}
+        d_t_d = {}
+        for (x, y, z) in loc_tuples:
+            distance = math.sqrt((x-cs[0])**2 + (y-cs[1])**2 + (z-ct)**2)
+            d_t = math.sqrt((z-ct)**2)
+            dist[(x, y, z)] = distance
+            d_t_d[(x, y, z)] = d_t
+        #print("ditances")
+        #print(dist)
+        #print(d_t_d)
+
+        min_N = min(dist, key=dist.get)
+        for key in dist.keys():
+            (x, y, t) = key
+            r = dist[key]
+            d = (r, cs)
+            t = (t, ct)
+            N = self.calculate_N(t, d, key)
+            print(f"for key {key}, N = {N}")
+            if key == min_N:
+                print(f"\t\tthis is the N for best/min key")
+
+
+    def calculate_N(self, t, d, key):
+        N_count = 0
+        pt, ct = t
+        r, pos_vic = d
+        for agent in self.model.agent_list:
+            if agent == self.victim:
+                break
+            for i in range(pt, ct+1):
+                pos_agent = agent.position_memory[i]
+                if self.get_distance(pos_agent, pos_vic) <= r:
+                    if agent == self.thief:
+                        print(agent.unique_id, "agent is thief")
+                    if agent == self.suspect:
+                        print(agent.unique_id, "agent is suspect")  #something goes wrong here.
+                    N_count += 1
+                    break
+        return N_count
+
+
+    def seen_ever(self, agent):
+        q = self.check_memory_for_suspect(agent, self.suspect)
+        return q
+
+
+
     def check_distance_memory(self, agent, other):
         close = 0
         alibi = 0
@@ -201,6 +274,20 @@ class CrimeModel():
             if dist > 5:
                 alibi = 1
         return close, alibi
+
+    def check_memory_for_suspect(self, agent, other_agent):
+        locs = []
+        for key in agent.visual_buffer.keys():
+            other_agent_pos = (-10, -10)
+            val = agent.visual_buffer[key]
+            if val != []:
+                if self.victim in list(zip(*val))[0]:
+                    for item in val:
+                        if item[0] == other_agent:
+                            other_agent_pos = item[1]
+                if other_agent_pos != (-10, -10):
+                    locs.append((key, agent.unique_id, other_agent_pos))
+        return locs
 
 
     def check_memory_near_victim(self, agent, other_agent):
@@ -229,6 +316,8 @@ class CrimeModel():
         r = []
         self.DNA_evidence = self.calculate_trace()
         for agent in self.model.agent_list:
+            # new #
+            self.seen_ever(agent)
             id = agent.unique_id
             sus = self.who_is_suspect(agent)
             vic = self.who_is_victim(agent)
@@ -313,7 +402,7 @@ class CrimeModel():
         pos_suspect = (-3, -3)
         pos_victim = (-1, -1)
         memory_tuples = []
-        for key in range(max(0, self.reported_time - 10), self.reported_time):  # final recall
+        for key in range(0, 100):  # final recall
             pos_suspect = (-3, -3)
             pos_victim = (-1, -1)
             if key in agent.visual_buffer.keys():
@@ -341,7 +430,7 @@ class CrimeModel():
         pos_anyone = (-3, -3)
         pos_victim = (-1, -1)
         memory_tuples = []
-        for key in range(max(0, self.reported_time - 10), self.reported_time):  # final recall
+        for key in range(0, 100):  # final recall
             pos_anyone = (-3, -3)
             pos_victim = (-1, -1)
             if key in agent.visual_buffer.keys():
@@ -509,6 +598,9 @@ class CrimeModel():
             self.total_witness_inn = 1
         if self.base_rate_surrounding > 0:
             self.base_rate_surrounding = 1
+
+
+
 
     def calculate_alibi(self):
         self.alibi_guilt = 0

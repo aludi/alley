@@ -22,10 +22,10 @@ def agent_portrayal(agent):
 
 
 
-'''grid = mesa.visualization.CanvasGrid(agent_portrayal, 20, 20, 500, 500)
+grid = mesa.visualization.CanvasGrid(agent_portrayal, 20, 20, 500, 500)
 server = mesa.visualization.ModularServer(MoneyModel,
                        [grid],
                        "Money Model",
                        {"N":8, "width":20, "height":20})
 server.port = 8521 # The default
-server.launch()'''
+server.launch()

@@ -65,12 +65,12 @@ def transform_ret(ret, params): # at least 1 other agent says about them that th
                     alibi_witness = 0
                 l_list.append(cs_witness)
                 l_list.append(alibi_witness)
-                print("witnesses")
-                print(l_list)
+                #print("witnesses")
+                #print(l_list)
     
             ag_list.append(l_list)
     
-    print(ag_list)
+    #print(ag_list)
 
     df = pd.DataFrame(ag_list, columns=header_columns)
     df.to_csv(f'out/data/witness{params["experiment_name"]}.csv')
@@ -85,13 +85,13 @@ def merge_attempt(agent_type):
 
 
 def perform_experiment(agent_type):
-    runs = 10
+    runs = 1
     for i in range(0, 1):
         e = Experiment(run=runs, suspect=agent_type)
         params = {"experiment_name": agent_type, "runs":runs}
         export_to_df(e,params)
         transform_ret(e.r, params)
-        print(e.headings)
+        #print(e.headings)
         e.print_table()
 
 
@@ -118,9 +118,9 @@ def calculate_Odds(df, evidence, hypothesis):
         P_en = 0.001
     LR = P_eh / P_en
     odds = LR * (H/notH)
-    #print(f"prior {hypothesis} == {H}, complement == {notH}")
-    #print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
-    #print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
+    print(f"prior {hypothesis} == {H}, complement == {notH}")
+    print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
+    print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
     print(f"change {hypothesis} given {evidence}: prior {H} to posterior {odds/(1+odds)} = {(odds/(1+odds)) - H}")
     return odds
 
@@ -164,12 +164,13 @@ def change(df, evidence, hypothesis):
         P_en = 0.001
     LR = P_eh / P_en
     odds = LR * (H/notH)
-    #print(f"prior {hypothesis} == {H}, complement == {notH}")
-    #print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
-    #print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
+    print(f"prior {hypothesis} == {H}, complement == {notH}")
+    print(f"P_eh = {P_eh}, P_en = {P_en}, LR = {LR}")
+    print(f"posterior {hypothesis} given {evidence} == {odds/(1+odds)}")
     p = odds/(1+odds)
     print(f"change {hypothesis} given {evidence}: prior {H} to posterior {p} = {p - H}")
-    return H, p
+    data = [hypothesis, evidence, H, notH, EandH, EandnotH, P_eh, P_en, LR, odds, (odds/(1+odds))]
+    return H, p, data
 
 
 def calculate_change(agent_type, run):
@@ -180,31 +181,49 @@ def calculate_change(agent_type, run):
          l.append((f"at_least_{i}_alibi_witness", "suspect"))
 
     st = []
+    evidence_LR = []
     for (ev, hyp) in l:
-        H, p = change(df, ev, hyp)
+        H, p, data = change(df, ev, hyp)
         c = p-H
         x = [run, hyp, ev, H, p, c] # f"change {hyp} given {ev}: prior {H} to posterior {p} = {c}
         st.append(x)
-    return st
+        d = [run]
+        d.extend(data)
+        evidence_LR.append(d)
+    print(d)
+    return st, evidence_LR
 
 l = []
 l_i = []
-for i in range(0, 2):
+
+l_e = []
+l_e_i = []
+for i in range(0, 1):
     perform_experiment("thief")
     merge_attempt("thief")
-    t = calculate_change("thief", i)
+    t, e_LR = calculate_change("thief", i)
     l = l + t
+    l_e = l_e + e_LR
+
 
     perform_experiment("innocent")
     merge_attempt("innocent")
-    t = calculate_change("innocent", i)
+    t, e_LR = calculate_change("innocent", i)
     l_i = l_i + t
+    l_e_i = l_e_i + e_LR
+
 
 df = pd.DataFrame(l, columns=["run", "hyp", "ev", "H", "p", "c"])
 df.to_csv("out/data/outputthief.csv")
 
 df = pd.DataFrame(l_i, columns=["run", "hyp", "ev", "H", "p", "c"])
 df.to_csv("out/data/outputinnocent.csv")
+
+df = pd.DataFrame(l_e, columns=["run", "hypothesis", "evidence", "H", "notH", "EandH", "EandnotH", "P_eh", "P_en", "LR", "odds", "odds/(1+odds)"])
+df.to_csv("out/data/LRoutputthief.csv")
+
+df = pd.DataFrame(l_e_i, columns=["run", "hypothesis", "evidence", "H", "notH", "EandH", "EandnotH", "P_eh", "P_en", "LR", "odds", "odds/(1+odds)"])
+df.to_csv("out/data/LRoutputinnocent.csv")
 
 os.system("Rscript generatingNetworkAlleys.R")
 
